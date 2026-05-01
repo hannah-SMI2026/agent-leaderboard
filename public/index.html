@@ -647,6 +647,10 @@ function colorFor(name) {
 function initials(name) {
   return name.trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
 }
+function cleanName(raw) {
+  // strip leading @ and return only the first word (first name)
+  return (raw || '').replace(/^@+/, '').trim().split(/\s+/)[0];
+}
 function fmtMoney(n) {
   if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
   if (n >= 1000)    return '$' + (n/1000).toFixed(n%1000===0?0:1) + 'k';
@@ -703,16 +707,16 @@ function parseCSV(text) {
 function aggregate(rows, from, to) {
   if (!rows.length) return { agents:[], totalDeals:0, totalPremium:0 };
   const keys = Object.keys(rows[0]);
-  const nameKey    = keys.find(k=>/name/i.test(k))||keys[0];
-  const dateKey    = keys.find(k=>/date/i.test(k))||keys[1];
-  const premiumKey = keys.find(k=>/premium|amount|price|value/i.test(k))||keys[2];
+  const nameKey    = keys.find(k=>k==='submitted_by') || keys.find(k=>/name/i.test(k)) || keys[0];
+  const dateKey    = keys.find(k=>k==='date')          || keys.find(k=>/date/i.test(k)) || keys[1];
+  const premiumKey = keys.find(k=>k==='total_premium') || keys.find(k=>/premium|amount|price|value/i.test(k)) || keys[2];
 
   const map={}, byDate={}; let totalDeals=0, totalPremium=0;
 
   rows.forEach(row => {
     const date=(row[dateKey]||'').trim().slice(0,10);
     if (date<from||date>to) return;
-    const name=(row[nameKey]||'').trim(); if (!name) return;
+    const name=cleanName(row[nameKey]); if (!name) return;
     const premium=parseFloat((row[premiumKey]||'0').replace(/[$,]/g,''))||0;
 
     if (!map[name]) map[name]={ name, deals:0, premium:0, dailyDeals:{} };
@@ -974,17 +978,16 @@ function filterSales(rowsArg) {
   }
 
   const keys       = Object.keys(rows[0]);
-  const nameKey    = keys.find(k => /name/i.test(k))    || keys[0];
-  const dateKey    = keys.find(k => /date/i.test(k))    || keys[1];
-  const premiumKey = keys.find(k => /premium|amount|price|value/i.test(k)) || keys[2];
-  // any remaining columns to show as extra info
-  const extraKeys  = keys.filter(k => k !== nameKey && k !== dateKey && k !== premiumKey);
+  const nameKey    = keys.find(k=>k==='submitted_by')  || keys.find(k=>/name/i.test(k))    || keys[0];
+  const dateKey    = keys.find(k=>k==='date')           || keys.find(k=>/date/i.test(k))    || keys[1];
+  const premiumKey = keys.find(k=>k==='total_premium')  || keys.find(k=>/premium|amount|price|value/i.test(k)) || keys[2];
+  const policyKey  = keys.find(k=>k==='policy_type');
 
   const query = (document.getElementById('sales-search')?.value || '').toLowerCase();
   const sort  = document.getElementById('sales-sort')?.value || 'date-desc';
 
   let filtered = rows.filter(r => {
-    const name = (r[nameKey] || '').toLowerCase();
+    const name = cleanName(r[nameKey]).toLowerCase();
     return !query || name.includes(query);
   });
 
@@ -996,7 +999,7 @@ function filterSales(rowsArg) {
       const pb = parseFloat((b[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
       return pb - pa;
     }
-    if (sort === 'name-asc')     return (a[nameKey]||'').localeCompare(b[nameKey]||'');
+    if (sort === 'name-asc')     return (cleanName(a[nameKey])||'').localeCompare(cleanName(b[nameKey])||'');
     return 0;
   });
 
@@ -1010,16 +1013,17 @@ function filterSales(rowsArg) {
   }
 
   document.getElementById('sales-grid').innerHTML = filtered.map(row => {
-    const name    = (row[nameKey] || '—').trim();
+    const name    = cleanName(row[nameKey]) || '—';
     const dateRaw = (row[dateKey] || '').trim();
     const premium = parseFloat((row[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
+    const policy  = policyKey ? (row[policyKey] || '') : '';
     const color   = colorFor(name);
 
     const dateFmt = dateRaw
       ? new Date(dateRaw + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
       : '—';
 
-    const extra = extraKeys.map(k => row[k]).filter(Boolean).join(' · ');
+    const extra = policy;
 
     return `
       <div class="sale-card">
