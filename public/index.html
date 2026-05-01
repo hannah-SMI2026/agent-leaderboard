@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Leaderboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0b1120;
+      --surface:   #111827;
+      --surface2:  #1a2540;
+      --border:    #1f2d45;
+      --text:      #e2e8f0;
+      --muted:     #6b7280;
+      --cyan:      #22d3ee;
+      --gold:      #f59e0b;
+      --purple:    #8b5cf6;
+      --teal:      #14b8a6;
+      --red:       #f87171;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* ── Header ────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .header h1 span { color: var(--gold); }
+    .refresh-info {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .refresh-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── Tabs ───────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 8px 20px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #000;
+    }
+    .tab:hover:not(.active) {
+      border-color: var(--text);
+      color: var(--text);
+    }
+
+    /* ── Stat Cards ─────────────────────────────── */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 700px) { .stat-cards { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      border-radius: 14px;
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid transparent;
+    }
+    .stat-card.blue   { background: #132042; border-color: #1e3a6e; }
+    .stat-card.purple { background: #1e1044; border-color: #4c1d95; }
+    .stat-card.teal   { background: #0d2a2a; border-color: #115e59; }
+
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-card.blue   .stat-label { color: var(--gold); }
+    .stat-card.purple .stat-label { color: #c4b5fd; }
+    .stat-card.teal   .stat-label { color: var(--teal); }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stat-icon { font-size: 2.4rem; opacity: 0.85; }
+
+    /* ── Main layout ────────────────────────────── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+    /* ── Panel ──────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 18px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-date { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── Period panels (right column) ──────────── */
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .period-panel {
+      background: var(--surface);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .period-panel.week  { border: 1px solid var(--cyan); }
+    .period-panel.month { border: 1px solid var(--gold); }
+    .period-panel.all   { border: 1px solid var(--purple); }
+
+    .period-header {
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .period-header-left { display: flex; align-items: center; gap: 10px; }
+    .period-icon {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .period-panel.week  .period-icon { background: #0a2a33; }
+    .period-panel.month .period-icon { background: #2a1f00; }
+    .period-panel.all   .period-icon { background: #1e1044; }
+
+    .period-name { font-size: 0.95rem; font-weight: 700; }
+    .period-range { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+    .period-totals { text-align: right; }
+    .period-deal-count { font-size: 1.4rem; font-weight: 800; }
+    .period-panel.week  .period-deal-count { color: var(--cyan); }
+    .period-panel.month .period-deal-count { color: var(--gold); }
+    .period-panel.all   .period-deal-count { color: var(--purple); }
+    .period-deals-label { font-size: 0.7rem; color: var(--muted); }
+    .period-premium { font-size: 0.78rem; font-weight: 600; }
+    .period-panel.week  .period-premium { color: var(--cyan); }
+    .period-panel.month .period-premium { color: var(--gold); }
+    .period-panel.all   .period-premium { color: var(--purple); }
+
+    /* ── Agent rows ─────────────────────────────── */
+    .agent-list { padding: 6px 0; max-height: 320px; overflow-y: auto; }
+    .agent-list::-webkit-scrollbar { width: 4px; }
+    .agent-list::-webkit-scrollbar-track { background: transparent; }
+    .agent-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .agent-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      transition: background 0.15s;
+    }
+    .agent-row:hover { background: var(--surface2); }
+
+    .rank-badge {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+    .rank-2 { background: #1d4ed8; color: #fff; }
+    .rank-3 { background: #ea580c; color: #fff; }
+    .rank-4 { background: #7c3aed; color: #fff; }
+    .rank-5 { background: #0f766e; color: #fff; }
+    .rank-other { background: var(--surface2); color: var(--muted); }
+
+    .agent-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      letter-spacing: 0.5px;
+    }
+
+    .agent-name {
+      flex: 1;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .agent-stats { text-align: right; flex-shrink: 0; }
+    .agent-deal-num {
+      font-size: 1.1rem;
+      font-weight: 800;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    .agent-deal-icon { font-size: 0.85rem; }
+    .agent-premium { font-size: 0.72rem; font-weight: 600; color: var(--cyan); margin-top: 1px; }
+
+    /* ── Today's leaders (big panel) ──────────── */
+    .today-list { padding: 8px 0; }
+    .today-agent-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .today-agent-row:last-child { border-bottom: none; }
+    .today-agent-row:hover { background: var(--surface2); }
+
+    .today-rank {
+      font-size: 1.5rem;
+      font-weight: 900;
+      width: 36px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .today-rank.r1 { color: var(--gold); }
+    .today-rank.r2 { color: #94a3b8; }
+    .today-rank.r3 { color: #cd7c2f; }
+
+    .today-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .today-info { flex: 1; }
+    .today-name { font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .today-sub  { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+
+    .today-metrics { display: flex; gap: 24px; }
+    .today-metric { text-align: right; }
+    .today-metric-val { font-size: 1.2rem; font-weight: 800; }
+    .today-metric-val.gold   { color: var(--gold); }
+    .today-metric-val.cyan   { color: var(--cyan); }
+    .today-metric-lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Empty state ────────────────────────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+      color: var(--muted);
+      gap: 10px;
+    }
+    .empty-icon { font-size: 3rem; opacity: 0.3; }
+    .empty-title { font-size: 0.95rem; font-weight: 600; }
+    .empty-sub   { font-size: 0.78rem; }
+
+    /* ── Breakdown tab ──────────────────────────── */
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+    .breakdown-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .breakdown-agent-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .breakdown-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+    .breakdown-name { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; }
+    .breakdown-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      text-align: center;
+    }
+    .breakdown-stat-val { font-size: 1rem; font-weight: 800; }
+    .breakdown-stat-val.gold { color: var(--gold); }
+    .breakdown-stat-val.cyan { color: var(--cyan); }
+    .breakdown-stat-val.purple { color: var(--purple); }
+    .breakdown-stat-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+
+    /* ── Loading / error ────────────────────────── */
+    .status-bar {
+      text-align: center;
+      padding: 8px;
+      font-size: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .status-bar.error   { background: #3b0a0a; color: var(--red); display: block; }
+    .status-bar.loading { background: var(--surface2); color: var(--muted); display: block; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">🏆</div>
+    <h1>Med Advantage <span>Advisors</span></h1>
+  </div>
+  <div class="refresh-info">
+    <div class="refresh-dot"></div>
+    <span id="last-updated">Loading…</span>
+  </div>
+</div>
+
+<div id="status-bar" class="status-bar"></div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('leaders')" id="tab-leaders">🏆 Leaders</button>
+  <button class="tab" onclick="switchTab('breakdown')" id="tab-breakdown">📊 Breakdown</button>
+</div>
+
+<!-- LEADERS TAB -->
+<div id="view-leaders">
+  <div class="stat-cards">
+    <div class="stat-card blue">
+      <div>
+        <div class="stat-label">Total Deals</div>
+        <div class="stat-value" id="total-deals">—</div>
+      </div>
+      <div class="stat-icon">🏆</div>
+    </div>
+    <div class="stat-card purple">
+      <div>
+        <div class="stat-label">Total Premium</div>
+        <div class="stat-value" id="total-premium">—</div>
+      </div>
+      <div class="stat-icon">💰</div>
+    </div>
+    <div class="stat-card teal">
+      <div>
+        <div class="stat-label">Avg Premium</div>
+        <div class="stat-value" id="avg-premium">—</div>
+      </div>
+      <div class="stat-icon">📈</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- Today's Leaders -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">🏆 Today's Leaders</div>
+        <div class="panel-date" id="today-date"></div>
+      </div>
+      <div id="today-content"></div>
+    </div>
+
+    <!-- Right column: week / month / all-time -->
+    <div class="right-col">
+      <!-- This Week -->
+      <div class="period-panel week">
+        <div class="period-header">
+          <div class="period-header-left">
+            <div class="period-icon">⏱</div>
+            <div>
+              <div class="period-name">This Week</div>
+              <div class="period-range" id="week-range"></div>
+            </div>
+          </div>
+          <div class="period-totals">
+            <div class="period-deal-count" id="week-deals">0</div>
+            <div class="period-deals-label">deals</div>
+            <div class="period-premium" id="week-premium">$0</div>
+          </div>
+        </div>
+        <div class="agent-list" id="week-list"></div>
+      </div>
+
+      <!-- This Month -->
+      <div class="period-panel month">
+        <div class="period-header">
+          <div class="period-header-left">
+            <div class="period-icon">⭐</div>
+            <div>
+              <div class="period-name">This Month</div>
+              <div class="period-range" id="month-range"></div>
+            </div>
+          </div>
+          <div class="period-totals">
+            <div class="period-deal-count" id="month-deals">0</div>
+            <div class="period-deals-label">deals</div>
+            <div class="period-premium" id="month-premium">$0</div>
+          </div>
+        </div>
+        <div class="agent-list" id="month-list"></div>
+      </div>
+
+      <!-- All Time -->
+      <div class="period-panel all">
+        <div class="period-header">
+          <div class="period-header-left">
+            <div class="period-icon">🔥</div>
+            <div>
+              <div class="period-name">All Time</div>
+              <div class="period-range" id="all-range"></div>
+            </div>
+          </div>
+          <div class="period-totals">
+            <div class="period-deal-count" id="all-deals">0</div>
+            <div class="period-deals-label">deals</div>
+            <div class="period-premium" id="all-premium">$0</div>
+          </div>
+        </div>
+        <div class="agent-list" id="all-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BREAKDOWN TAB -->
+<div id="view-breakdown" style="display:none">
+  <div class="breakdown-grid" id="breakdown-content"></div>
+</div>
+
+<script>
+// ── Avatar colours ─────────────────────────────────────────────────────────
+const COLORS = [
+  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c',
+  '#3498db','#9b59b6','#e91e63','#00bcd4','#ff5722',
+];
+function colorFor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+function initials(name) {
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+function fmtMoney(n) {
+  if (n >= 1000) return '$' + (n/1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'k';
+  return '$' + Math.round(n).toLocaleString();
+}
+function rankIcon(r) {
+  if (r === 1) return '⚡';
+  if (r <= 3)  return '⭐';
+  return '';
+}
+function rankClass(r) {
+  return r <= 5 ? `rank-${r}` : 'rank-other';
+}
+
+// ── Date helpers ──────────────────────────────────────────────────────────
+function todayStr()   { return new Date().toISOString().slice(0,10); }
+function weekStart()  {
+  const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1); // Monday
+  return d.toISOString().slice(0,10);
+}
+function monthStart() { return new Date().toISOString().slice(0,8) + '01'; }
+
+// ── CSV parser ────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
+  return lines.slice(1).map(line => {
+    // handle quoted fields
+    const cols = [];
+    let cur = '', inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur.trim());
+    const obj = {};
+    header.forEach((h, i) => obj[h] = cols[i] || '');
+    return obj;
+  }).filter(r => r[header[0]]); // skip empty rows
+}
+
+// ── Aggregate deals ────────────────────────────────────────────────────────
+// Expected columns (case-insensitive, spaces→_):
+//   agent_name  |  date (YYYY-MM-DD)  |  premium (number, optional $ or ,)
+function aggregate(rows, from, to) {
+  const map = {};
+  let totalDeals = 0, totalPremium = 0;
+
+  // detect column names
+  if (!rows.length) return { agents: [], totalDeals: 0, totalPremium: 0 };
+  const keys = Object.keys(rows[0]);
+  const nameKey    = keys.find(k => /name/i.test(k)) || keys[0];
+  const dateKey    = keys.find(k => /date/i.test(k)) || keys[1];
+  const premiumKey = keys.find(k => /premium|amount|price|value/i.test(k)) || keys[2];
+
+  rows.forEach(row => {
+    const date = (row[dateKey] || '').trim().slice(0,10);
+    if (date < from || date > to) return;
+    const name = (row[nameKey] || '').trim();
+    if (!name) return;
+    const premium = parseFloat((row[premiumKey] || '0').replace(/[$,]/g,'')) || 0;
+
+    if (!map[name]) map[name] = { name, deals: 0, premium: 0 };
+    map[name].deals++;
+    map[name].premium += premium;
+    totalDeals++;
+    totalPremium += premium;
+  });
+
+  const agents = Object.values(map).sort((a,b) => b.deals - a.deals || b.premium - a.premium);
+  return { agents, totalDeals, totalPremium };
+}
+
+// ── Render helpers ─────────────────────────────────────────────────────────
+function renderAgentRow(agent, rank) {
+  const rc = rankClass(rank);
+  const ic = rankIcon(rank);
+  const color = colorFor(agent.name);
+  return `
+    <div class="agent-row">
+      <div class="rank-badge ${rc}">${rank}</div>
+      <div class="agent-avatar" style="background:${color}">${initials(agent.name)}</div>
+      <div class="agent-name">${agent.name}</div>
+      <div class="agent-stats">
+        <div class="agent-deal-num">
+          ${ic ? `<span class="agent-deal-icon">${ic}</span>` : ''}
+          ${agent.deals}
+        </div>
+        <div class="agent-premium">${fmtMoney(agent.premium)}</div>
+      </div>
+    </div>`;
+}
+
+function renderEmpty(msg = 'No deals yet', sub = '') {
+  return `<div class="empty-state">
+    <div class="empty-icon">🏆</div>
+    <div class="empty-title">${msg}</div>
+    ${sub ? `<div class="empty-sub">${sub}</div>` : ''}
+  </div>`;
+}
+
+function renderTodayRow(agent, rank) {
+  const color = colorFor(agent.name);
+  const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+  return `
+    <div class="today-agent-row">
+      <div class="today-rank ${rankCls}">${medal}</div>
+      <div class="today-avatar" style="background:${color}">${initials(agent.name)}</div>
+      <div class="today-info">
+        <div class="today-name">${agent.name}</div>
+        <div class="today-sub">Rank #${rank} today</div>
+      </div>
+      <div class="today-metrics">
+        <div class="today-metric">
+          <div class="today-metric-val gold">${agent.deals}</div>
+          <div class="today-metric-lbl">Deals</div>
+        </div>
+        <div class="today-metric">
+          <div class="today-metric-val cyan">${fmtMoney(agent.premium)}</div>
+          <div class="today-metric-lbl">Premium</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Render all panels ──────────────────────────────────────────────────────
+function renderAll(rows) {
+  const today = todayStr();
+  const wStart = weekStart();
+  const mStart = monthStart();
+
+  const todayData = aggregate(rows, today, today);
+  const weekData  = aggregate(rows, wStart, today);
+  const monthData = aggregate(rows, mStart, today);
+  const allData   = aggregate(rows, '2000-01-01', today);
+
+  // Stats bar (all-time)
+  document.getElementById('total-deals').textContent   = allData.totalDeals.toLocaleString();
+  document.getElementById('total-premium').textContent = fmtMoney(allData.totalPremium);
+  document.getElementById('avg-premium').textContent   = allData.totalDeals
+    ? fmtMoney(allData.totalPremium / allData.totalDeals) : '$0';
+
+  // Today
+  const todayFmt = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('today-date').textContent = todayFmt;
+  document.getElementById('today-content').innerHTML = todayData.agents.length
+    ? `<div class="today-list">${todayData.agents.slice(0,10).map((a,i) => renderTodayRow(a,i+1)).join('')}</div>`
+    : renderEmpty('No deals yet today', 'Be the first to close a deal!');
+
+  // Week
+  document.getElementById('week-range').textContent  = `${wStart} — ${today}`;
+  document.getElementById('week-deals').textContent  = weekData.totalDeals;
+  document.getElementById('week-premium').textContent= fmtMoney(weekData.totalPremium);
+  document.getElementById('week-list').innerHTML = weekData.agents.length
+    ? weekData.agents.slice(0,8).map((a,i) => renderAgentRow(a,i+1)).join('')
+    : renderEmpty('No deals this week');
+
+  // Month
+  document.getElementById('month-range').textContent  = `${mStart} — ${today}`;
+  document.getElementById('month-deals').textContent  = monthData.totalDeals;
+  document.getElementById('month-premium').textContent= fmtMoney(monthData.totalPremium);
+  document.getElementById('month-list').innerHTML = monthData.agents.length
+    ? monthData.agents.slice(0,8).map((a,i) => renderAgentRow(a,i+1)).join('')
+    : renderEmpty('No deals this month');
+
+  // All-time
+  if (rows.length) {
+    const dates = rows.map(r => Object.values(r)[1]).filter(Boolean).sort();
+    document.getElementById('all-range').textContent = `${dates[0]} — ${today}`;
+  }
+  document.getElementById('all-deals').textContent  = allData.totalDeals;
+  document.getElementById('all-premium').textContent= fmtMoney(allData.totalPremium);
+  document.getElementById('all-list').innerHTML = allData.agents.length
+    ? allData.agents.slice(0,8).map((a,i) => renderAgentRow(a,i+1)).join('')
+    : renderEmpty('No data yet');
+
+  // Breakdown
+  renderBreakdown(allData.agents, rows, today, wStart, mStart);
+}
+
+function renderBreakdown(agents, rows, today, wStart, mStart) {
+  if (!agents.length) {
+    document.getElementById('breakdown-content').innerHTML =
+      `<div style="grid-column:1/-1">${renderEmpty('No data available')}</div>`;
+    return;
+  }
+  document.getElementById('breakdown-content').innerHTML = agents.map(agent => {
+    const agentRows = rows.filter(r => {
+      const keys = Object.keys(r);
+      const nameKey = keys.find(k => /name/i.test(k)) || keys[0];
+      return (r[nameKey]||'').trim() === agent.name;
+    });
+    const todayD  = aggregate(agentRows, today, today);
+    const weekD   = aggregate(agentRows, wStart, today);
+    const color   = colorFor(agent.name);
+    return `
+      <div class="breakdown-card">
+        <div class="breakdown-agent-header">
+          <div class="breakdown-avatar" style="background:${color}">${initials(agent.name)}</div>
+          <div class="breakdown-name">${agent.name}</div>
+        </div>
+        <div class="breakdown-stats">
+          <div>
+            <div class="breakdown-stat-val gold">${todayD.totalDeals}</div>
+            <div class="breakdown-stat-lbl">Today</div>
+          </div>
+          <div>
+            <div class="breakdown-stat-val cyan">${weekD.totalDeals}</div>
+            <div class="breakdown-stat-lbl">Week</div>
+          </div>
+          <div>
+            <div class="breakdown-stat-val purple">${agent.deals}</div>
+            <div class="breakdown-stat-lbl">All Time</div>
+          </div>
+        </div>
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:0.75rem;">
+          <span style="color:var(--muted)">Total Premium</span>
+          <span style="font-weight:700; color:var(--cyan)">${fmtMoney(agent.premium)}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('view-leaders').style.display   = tab === 'leaders'   ? '' : 'none';
+  document.getElementById('view-breakdown').style.display = tab === 'breakdown' ? '' : 'none';
+  document.getElementById('tab-leaders').classList.toggle('active',   tab === 'leaders');
+  document.getElementById('tab-breakdown').classList.toggle('active', tab === 'breakdown');
+}
+
+// ── Fetch & refresh ───────────────────────────────────────────────────────
+let lastRows = [];
+
+function setStatus(type, msg) {
+  const el = document.getElementById('status-bar');
+  el.className = 'status-bar ' + type;
+  el.textContent = msg;
+}
+
+async function fetchData() {
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      setStatus('error', '⚠ ' + (err.error || 'Failed to load data'));
+      return;
+    }
+    const csv = await res.text();
+    if (csv.trim().startsWith('{')) {
+      const err = JSON.parse(csv);
+      setStatus('error', '⚠ ' + err.error);
+      return;
+    }
+    document.getElementById('status-bar').className = 'status-bar'; // hide
+    lastRows = parseCSV(csv);
+    renderAll(lastRows);
+    document.getElementById('last-updated').textContent =
+      'Live · updated ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    setStatus('error', '⚠ Could not reach the server: ' + e.message);
+  }
+}
+
+// Initial load + refresh every 60 seconds
+setStatus('loading', 'Loading data…');
+fetchData();
+setInterval(fetchData, 60_000);
+</script>
+</body>
+</html>
