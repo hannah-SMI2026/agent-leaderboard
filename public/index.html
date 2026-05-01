@@ -419,6 +419,70 @@
       border-radius: 6px;
     }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* ── Sales view ───────────────────────────────── */
+    .sales-toolbar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .sales-search {
+      flex: 1; min-width: 200px;
+      padding: 9px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.85rem; font-family: inherit;
+      color: var(--text); background: var(--white);
+      outline: none; transition: border-color 0.15s;
+    }
+    .sales-search:focus { border-color: var(--red); }
+    .sales-sort-group { display: flex; align-items: center; gap: 8px; }
+    .sales-sort-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+    .sales-sort-select {
+      padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.82rem; font-family: inherit; color: var(--text);
+      background: var(--white); outline: none; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .sales-sort-select:focus { border-color: var(--red); }
+    .sales-count { font-size: 0.78rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
+
+    .sales-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .sale-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 10px rgba(30,38,64,.05);
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .sale-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(30,38,64,.09);
+      border-color: #d9dff0;
+    }
+    .sale-avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .sale-info { flex: 1; min-width: 0; }
+    .sale-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .sale-date { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    .sale-extra { font-size: 0.72rem; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sale-premium {
+      text-align: right; flex-shrink: 0;
+    }
+    .sale-premium-val {
+      font-size: 1.15rem; font-weight: 900;
+      color: var(--red);
+    }
+    .sale-premium-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -439,21 +503,8 @@
   </div>
 
   <div class="nav-section">
-    <div class="nav-section-label">Main</div>
-    <div class="nav-item"><span class="nav-icon">📊</span> Reports</div>
-    <div class="nav-item"><span class="nav-icon">💡</span> Insights</div>
-    <div class="nav-item"><span class="nav-icon">📋</span> Spreadsheets</div>
-    <div class="nav-item active"><span class="nav-icon">🏆</span> Leaderboard</div>
-    <div class="nav-item"><span class="nav-icon">⚙️</span> Administration</div>
-    <div class="nav-item"><span class="nav-icon">💼</span> Sales</div>
-    <div class="nav-item"><span class="nav-icon">📅</span> Schedule</div>
-  </div>
-
-  <div class="nav-section" style="margin-top:16px">
-    <div class="nav-section-label">Help</div>
-    <div class="nav-item"><span class="nav-icon">🔧</span> Settings</div>
-    <div class="nav-item"><span class="nav-icon">📚</span> Library</div>
-    <div class="nav-item"><span class="nav-icon">🆘</span> Support</div>
+    <div class="nav-item active" id="nav-leaderboard" onclick="switchView('leaderboard')"><span class="nav-icon">🏆</span> Leaderboard</div>
+    <div class="nav-item" id="nav-sales" onclick="switchView('sales')"><span class="nav-icon">💼</span> Sales</div>
   </div>
 
   <div class="sidebar-footer">
@@ -496,8 +547,26 @@
   <!-- Error bar -->
   <div class="error-bar" id="error-bar"></div>
 
+  <!-- Sales View -->
+  <div id="view-sales" style="display:none; padding:24px 28px; flex:1; flex-direction:column; gap:20px;">
+    <div class="sales-toolbar">
+      <input class="sales-search" id="sales-search" type="text" placeholder="Search by name…" oninput="filterSales()" />
+      <div class="sales-sort-group">
+        <span class="sales-sort-label">Sort by</span>
+        <select class="sales-sort-select" id="sales-sort" onchange="filterSales()">
+          <option value="date-desc">Newest first</option>
+          <option value="date-asc">Oldest first</option>
+          <option value="premium-desc">Highest premium</option>
+          <option value="name-asc">Name A–Z</option>
+        </select>
+      </div>
+      <div class="sales-count" id="sales-count"></div>
+    </div>
+    <div class="sales-grid" id="sales-grid"></div>
+  </div>
+
   <!-- Content -->
-  <div class="content">
+  <div id="view-leaderboard" class="content">
 
     <!-- Left: podium + others -->
     <div class="podium-section">
@@ -575,8 +644,8 @@
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- end .content -->
+</div><!-- end .main -->
 
 <script>
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -857,6 +926,97 @@ function hideError() {
 
 fetchData();
 setInterval(fetchData, 60_000);
+
+// ── View switching ─────────────────────────────────────────────────────────
+function switchView(view) {
+  const isLeaderboard = view === 'leaderboard';
+  document.getElementById('view-leaderboard').style.display = isLeaderboard ? 'grid' : 'none';
+  document.getElementById('view-sales').style.display       = isLeaderboard ? 'none' : 'flex';
+  document.getElementById('nav-leaderboard').classList.toggle('active', isLeaderboard);
+  document.getElementById('nav-sales').classList.toggle('active', !isLeaderboard);
+  document.querySelector('.topbar-title').innerHTML = isLeaderboard
+    ? '<span class="topbar-title-icon">🛡</span> Leaderboard for'
+    : '<span class="topbar-title-icon">💼</span> Sales';
+  document.getElementById('period-btn').style.display = isLeaderboard ? '' : 'none';
+  if (!isLeaderboard) renderSales(allRows);
+}
+
+// ── Sales rendering ────────────────────────────────────────────────────────
+function renderSales(rows) {
+  filterSales(rows);
+}
+
+function filterSales(rowsArg) {
+  const rows = rowsArg instanceof Array ? rowsArg : allRows;
+  if (!rows.length) {
+    document.getElementById('sales-grid').innerHTML =
+      `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">💼</div><div class="empty-title">No sales data yet</div></div>`;
+    return;
+  }
+
+  const keys       = Object.keys(rows[0]);
+  const nameKey    = keys.find(k => /name/i.test(k))    || keys[0];
+  const dateKey    = keys.find(k => /date/i.test(k))    || keys[1];
+  const premiumKey = keys.find(k => /premium|amount|price|value/i.test(k)) || keys[2];
+  // any remaining columns to show as extra info
+  const extraKeys  = keys.filter(k => k !== nameKey && k !== dateKey && k !== premiumKey);
+
+  const query = (document.getElementById('sales-search')?.value || '').toLowerCase();
+  const sort  = document.getElementById('sales-sort')?.value || 'date-desc';
+
+  let filtered = rows.filter(r => {
+    const name = (r[nameKey] || '').toLowerCase();
+    return !query || name.includes(query);
+  });
+
+  filtered.sort((a, b) => {
+    if (sort === 'date-desc')    return (b[dateKey]||'').localeCompare(a[dateKey]||'');
+    if (sort === 'date-asc')     return (a[dateKey]||'').localeCompare(b[dateKey]||'');
+    if (sort === 'premium-desc') {
+      const pa = parseFloat((a[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
+      const pb = parseFloat((b[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
+      return pb - pa;
+    }
+    if (sort === 'name-asc')     return (a[nameKey]||'').localeCompare(b[nameKey]||'');
+    return 0;
+  });
+
+  document.getElementById('sales-count').textContent =
+    `${filtered.length} deal${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) {
+    document.getElementById('sales-grid').innerHTML =
+      `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">No results for "${query}"</div></div>`;
+    return;
+  }
+
+  document.getElementById('sales-grid').innerHTML = filtered.map(row => {
+    const name    = (row[nameKey] || '—').trim();
+    const dateRaw = (row[dateKey] || '').trim();
+    const premium = parseFloat((row[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
+    const color   = colorFor(name);
+
+    const dateFmt = dateRaw
+      ? new Date(dateRaw + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+      : '—';
+
+    const extra = extraKeys.map(k => row[k]).filter(Boolean).join(' · ');
+
+    return `
+      <div class="sale-card">
+        <div class="sale-avatar" style="background:${color}">${initials(name)}</div>
+        <div class="sale-info">
+          <div class="sale-name">${name}</div>
+          <div class="sale-date">📅 ${dateFmt}</div>
+          ${extra ? `<div class="sale-extra">${extra}</div>` : ''}
+        </div>
+        <div class="sale-premium">
+          <div class="sale-premium-val">${fmtMoney(premium)}</div>
+          <div class="sale-premium-lbl">Premium</div>
+        </div>
+      </div>`;
+  }).join('');
+}
 </script>
 </body>
 </html>
