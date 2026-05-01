@@ -413,6 +413,34 @@
     }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
+    /* ── View chips ──────────────────────────────── */
+    .view-chips { display: flex; gap: 4px; }
+    .chip {
+      padding: 5px 14px; border-radius: 999px;
+      font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid var(--border);
+      background: var(--white); color: var(--muted);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .chip:hover { border-color: var(--navy); color: var(--navy); }
+    .chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+    /* ── Team accordion ──────────────────────────── */
+    .team-group { border-bottom: 1px solid var(--border); }
+    .team-group:last-child { border-bottom: none; }
+    .team-row { cursor: pointer; border-bottom: none !important; }
+    .team-chevron { font-size: 0.7rem; color: var(--muted); margin-left: 6px; transition: transform 0.2s; flex-shrink: 0; }
+    .team-group.open .team-chevron { transform: rotate(180deg); }
+    .team-agents { display: none; }
+    .team-group.open .team-agents { display: block; }
+    .team-agent-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 20px 8px 68px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbff;
+    }
+    .team-agent-row:last-child { border-bottom: none; }
+
     /* ── Sales view ───────────────────────────────── */
     .sales-toolbar {
       display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -506,6 +534,10 @@
       <div class="topbar-title">
         <span class="topbar-title-icon">🛡</span>
         Leaderboard for
+      </div>
+      <div class="view-chips" id="leaderboard-chips">
+        <button class="chip active" id="chip-agent" onclick="switchLeaderboardMode('agent')">By Agent</button>
+        <button class="chip" id="chip-team" onclick="switchLeaderboardMode('team')">By Team</button>
       </div>
       <button class="period-pill" id="period-btn">
         <span id="period-label">Today</span> ▾
@@ -715,8 +747,9 @@ function aggregate(rows, from, to) {
   // Debug: log first row's raw date and detected key
   if (rows[0]) console.log('[DEBUG] dateKey:', dateKey, '| raw date:', rows[0][dateKey], '| normalized:', normalizeDate(rows[0][dateKey]), '| from:', from, '| to:', to);
 
-  const map={}, byDate={}, policyCount={}; let totalDeals=0, totalPremium=0;
+  const map={}, byDate={}, policyCount={}, teamMap={}; let totalDeals=0, totalPremium=0;
   const policyKey = keys.find(k=>k==='policy_type') || '';
+  const teamKey   = keys.find(k=>k==='team'||/team/i.test(k)) || (keys.length > 26 ? keys[26] : '');
 
   rows.forEach(row => {
     const date=normalizeDate(row[dateKey]);
@@ -735,6 +768,18 @@ function aggregate(rows, from, to) {
       if (pt) policyCount[pt] = (policyCount[pt]||0) + 1;
     }
 
+    if (teamKey) {
+      const team = (row[teamKey]||'').trim();
+      if (team) {
+        if (!teamMap[team]) teamMap[team] = { name: team, deals: 0, premium: 0, agents: {} };
+        teamMap[team].deals++;
+        teamMap[team].premium += premium;
+        if (!teamMap[team].agents[name]) teamMap[team].agents[name] = { name, deals: 0, premium: 0 };
+        teamMap[team].agents[name].deals++;
+        teamMap[team].agents[name].premium += premium;
+      }
+    }
+
     // for news: collect most recent events
     const tsKey = keys.find(k=>k==='timestamp')||'';
     const ts = tsKey ? (row[tsKey]||'') : '';
@@ -743,13 +788,24 @@ function aggregate(rows, from, to) {
   });
 
   const agents = Object.values(map).sort((a,b)=>b.deals-a.deals||b.premium-a.premium);
-  return { agents, totalDeals, totalPremium, byDate, policyCount };
+  const teams  = Object.values(teamMap)
+    .sort((a,b)=>b.deals-a.deals||b.premium-a.premium)
+    .map(t=>({ ...t, agents: Object.values(t.agents).sort((a,b)=>b.deals-a.deals) }));
+  return { agents, teams, totalDeals, totalPremium, byDate, policyCount };
 }
 
 // ── Period state ───────────────────────────────────────────────────────────
 let currentPeriod = 'today';
 let customFrom = '', customTo = '';
 let allRows = [];
+let leaderboardMode = 'agent';
+
+function switchLeaderboardMode(mode) {
+  leaderboardMode = mode;
+  document.getElementById('chip-agent').classList.toggle('active', mode === 'agent');
+  document.getElementById('chip-team').classList.toggle('active', mode === 'team');
+  renderAll(allRows);
+}
 
 function yesterdayStr() {
   const d = new Date(); d.setDate(d.getDate() - 1);
@@ -809,11 +865,16 @@ function renderAll(rows) {
   document.getElementById('stat-avg').textContent     = data.totalDeals ? fmtMoney(data.totalPremium / data.totalDeals) : '$0';
 
 
-  // Podium (top 3)
-  renderPodium(data.agents.slice(0,3), from, to);
-
-  // Full rankings list
-  renderOthers(data.agents);
+  // Podium + rankings
+  if (leaderboardMode === 'team') {
+    renderTeamPodium(data.teams.slice(0,3));
+    renderTeamOthers(data.teams);
+    document.querySelector('.others-title').textContent = '🏅 All Teams';
+  } else {
+    renderPodium(data.agents.slice(0,3), from, to);
+    renderOthers(data.agents);
+    document.querySelector('.others-title').textContent = '🏅 All Rankings';
+  }
 
   // News
   renderNews(data.byDate || {});
@@ -886,6 +947,67 @@ function renderOthers(agents) {
           <div class="rank-deals-num">${agent.deals}</div>
           <div class="rank-deals-lbl">Deals</div>
         </div>
+      </div>`;
+  }).join('');
+}
+
+function renderTeamPodium(teams) {
+  const el = document.getElementById('podium-cards');
+  if (!teams.length) {
+    el.innerHTML = [1,2,3].map(i=>`
+      <div class="podium-card rank-${i}">
+        <div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No team data</div></div>
+      </div>`).join('');
+    return;
+  }
+  el.innerHTML = teams.map((team, i) => `
+    <div class="podium-card rank-${i+1}">
+      <div class="podium-medal">${RANK_MEDAL[i]}</div>
+      <div class="podium-avatar" style="background:#94a3b8">${team.name.slice(0,2).toUpperCase()}</div>
+      <div class="podium-name">${team.name}</div>
+      <div class="podium-badge badge-gray">#${i+1} Team</div>
+      <div class="podium-stat">${team.deals}</div>
+      <div class="podium-stat-label">Total Deals</div>
+      <div class="podium-premium">${fmtMoney(team.premium)}</div>
+    </div>`).join('');
+}
+
+function renderTeamOthers(teams) {
+  const el = document.getElementById('others-list');
+  if (!teams.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">No team data</div></div>`;
+    return;
+  }
+  el.innerHTML = teams.map((team, i) => {
+    const rank   = i + 1;
+    const medal  = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+    const rankCls= rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
+    const agentRows = team.agents.map(a=>`
+      <div class="team-agent-row">
+        <div class="rank-avatar" style="background:#94a3b8;width:30px;height:30px;font-size:0.7rem;flex-shrink:0">${initials(a.name)}</div>
+        <div style="flex:1;font-size:0.82rem;font-weight:600;color:var(--text)">${a.name}</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-right:12px">${fmtMoney(a.premium)}</div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:1rem;font-weight:900;color:var(--text);line-height:1">${a.deals}</div>
+          <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Deals</div>
+        </div>
+      </div>`).join('');
+    return `
+      <div class="team-group">
+        <div class="rank-row team-row" onclick="this.closest('.team-group').classList.toggle('open')">
+          <div class="rank-num ${rankCls}">${medal}</div>
+          <div class="rank-avatar" style="background:#94a3b8">${team.name.slice(0,2).toUpperCase()}</div>
+          <div class="rank-info">
+            <div class="rank-name">${team.name}</div>
+            <div class="rank-premium">${fmtMoney(team.premium)} · ${team.agents.length} agent${team.agents.length!==1?'s':''}</div>
+          </div>
+          <div class="rank-deals">
+            <div class="rank-deals-num">${team.deals}</div>
+            <div class="rank-deals-lbl">Deals</div>
+          </div>
+          <div class="team-chevron">▼</div>
+        </div>
+        <div class="team-agents">${agentRows}</div>
       </div>`;
   }).join('');
 }
