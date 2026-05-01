@@ -307,18 +307,19 @@
 
     .stat-card {
       border-radius: 16px;
-      padding: 20px 18px;
+      padding: 18px 16px;
       display: flex; flex-direction: column;
       justify-content: space-between;
-      min-height: 110px;
+      min-height: 90px;
     }
-    .stat-card.red   { background: linear-gradient(135deg, #ff4757, #ff6b78); }
-    .stat-card.dark  { background: var(--navy); }
+    .stat-card.red    { background: linear-gradient(135deg, #ff4757, #ff6b78); }
+    .stat-card.dark   { background: var(--navy); }
+    .stat-card.indigo { background: linear-gradient(135deg, #6366f1, #818cf8); grid-column: 1 / -1; flex-direction: row; align-items: center; }
 
     .stat-card-val {
-      font-size: 2rem; font-weight: 900; color: #fff; line-height: 1;
+      font-size: 1.8rem; font-weight: 900; color: #fff; line-height: 1;
     }
-    .stat-card-lbl { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,.65); margin-top: 6px; }
+    .stat-card-lbl { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,.65); margin-top: 5px; }
 
     /* ── Progress ────────────────────────────────── */
     .progress-panel {
@@ -479,7 +480,7 @@
 <!-- Sidebar -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <img src="/nsl-logo.png" alt="National Security Life" style="width:160px; filter:brightness(0) invert(1);" />
+    <img src="/nsl-logo.png" alt="National Security Life" style="width:200px; height:auto; filter:brightness(0) invert(1);" />
   </div>
 
 
@@ -584,7 +585,14 @@
         </div>
         <div class="stat-card dark">
           <div class="stat-card-val" id="stat-premium">—</div>
-          <div class="stat-card-lbl">Order Value</div>
+          <div class="stat-card-lbl">Total Premium</div>
+        </div>
+        <div class="stat-card indigo">
+          <div>
+            <div class="stat-card-val" id="stat-avg">—</div>
+            <div class="stat-card-lbl">Avg Premium per Deal</div>
+          </div>
+          <div style="font-size:2rem;opacity:0.6">📊</div>
         </div>
       </div>
 
@@ -782,6 +790,7 @@ function renderAll(rows) {
   // Stats
   document.getElementById('stat-deals').textContent   = data.totalDeals.toLocaleString();
   document.getElementById('stat-premium').textContent = fmtMoney(data.totalPremium);
+  document.getElementById('stat-avg').textContent     = data.totalDeals ? fmtMoney(data.totalPremium / data.totalDeals) : '$0';
 
 
   // Podium (top 3)
