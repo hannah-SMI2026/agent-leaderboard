@@ -626,6 +626,20 @@ function fmtMoney(n) {
   if (n >= 1000)    return '$' + (n/1000).toFixed(n%1000===0?0:1) + 'k';
   return '$' + Math.round(n).toLocaleString();
 }
+function parseMoney(raw) {
+  if (!raw) return 0;
+  let s = (raw + '').trim().replace(/^\$/, '');
+  // Detect comma-as-decimal: e.g. "1,131,12" where last comma precedes exactly 2 digits at end
+  const euroMatch = s.match(/^[\d,]+,(\d{2})$/);
+  if (euroMatch) {
+    const dec = euroMatch[1];
+    const int = s.slice(0, s.lastIndexOf(',')).replace(/,/g, '');
+    s = int + '.' + dec;
+  } else {
+    s = s.replace(/,/g, '');
+  }
+  return parseFloat(s) || 0;
+}
 function todayStr()   { return new Date().toISOString().slice(0,10); }
 function weekStart()  { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
 function monthStart() { return new Date().toISOString().slice(0,8)+'01'; }
@@ -705,7 +719,7 @@ function aggregate(rows, from, to) {
     const date=normalizeDate(row[dateKey]);
     if (!date||date<from||date>to) return;
     const name=cleanName(row[nameKey]); if (!name) return;
-    const premium=parseFloat((row[premiumKey]||'0').replace(/[$,]/g,''))||0;
+    const premium=parseMoney(row[premiumKey]);
 
     if (!map[name]) map[name]={ name, deals:0, premium:0, dailyDeals:{} };
     map[name].deals++;
@@ -996,7 +1010,7 @@ function filterSales(rowsArg) {
     const name = cleanName(row[nameKey]); if (!name) return;
     if (query && !name.toLowerCase().includes(query)) return;
     if (!agentMap[name]) agentMap[name] = { name, deals: [], totalPremium: 0 };
-    const premium = parseFloat((row[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
+    const premium = parseMoney(row[premiumKey]);
     const dateRaw = (row[dateKey] || '').trim();
     const normalized = normalizeDate(dateRaw);
     const dateFmt = normalized
