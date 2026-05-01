@@ -718,8 +718,11 @@ function aggregate(rows, from, to) {
   if (!rows.length) return { agents:[], totalDeals:0, totalPremium:0 };
   const keys = Object.keys(rows[0]);
   const nameKey    = keys.find(k=>k==='submitted_by') || keys.find(k=>/name/i.test(k)) || keys[0];
-  const dateKey    = keys.find(k=>k==='date')          || keys.find(k=>/date/i.test(k)) || keys[1];
+  const dateKey    = keys.find(k=>k==='date_only')      || keys.find(k=>k==='date') || keys[1];
   const premiumKey = keys.find(k=>k==='total_premium') || keys.find(k=>/premium|amount|price|value/i.test(k)) || keys[2];
+
+  // Debug: log first row's raw date and detected key
+  if (rows[0]) console.log('[DEBUG] dateKey:', dateKey, '| raw date:', rows[0][dateKey], '| normalized:', normalizeDate(rows[0][dateKey]), '| from:', from, '| to:', to);
 
   const map={}, byDate={}; let totalDeals=0, totalPremium=0;
 
