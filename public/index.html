@@ -712,8 +712,10 @@ function aggregate(rows, from, to) {
     totalDeals++; totalPremium+=premium;
 
     // for news: collect most recent events
+    const tsKey = keys.find(k=>k==='timestamp')||'';
+    const ts = tsKey ? (row[tsKey]||'') : '';
     if (!byDate[date]) byDate[date]=[];
-    byDate[date].push({ name, premium });
+    byDate[date].push({ name, premium, ts });
   });
 
   const agents = Object.values(map).sort((a,b)=>b.deals-a.deals||b.premium-a.premium);
@@ -876,28 +878,43 @@ function renderOthers(agents) {
   }).join('');
 }
 
+function timeAgo(tsStr) {
+  if (!tsStr) return '';
+  const t = new Date(tsStr);
+  if (isNaN(t)) return '';
+  const diff = Math.floor((Date.now() - t) / 1000);
+  if (diff < 60)   return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
 function renderNews(byDate) {
   const el = document.getElementById('news-list');
-  // Get most recent 8 events
   const events = [];
   Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date, deals]) => {
     deals.forEach(d => events.push({ ...d, date }));
+  });
+  // Sort by timestamp descending if available
+  events.sort((a,b) => {
+    if (a.ts && b.ts) return new Date(b.ts) - new Date(a.ts);
+    return 0;
   });
   if (!events.length) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">📰</div><div class="empty-title">No activity yet</div></div>`;
     return;
   }
-  const actions = ['Just closed a deal!','Added a new client','Hit daily target','Beat personal record','Closed a big deal!'];
-  el.innerHTML = events.slice(0,8).map((e, i) => {
+  el.innerHTML = events.slice(0,10).map(e => {
     const color = colorFor(e.name);
-    const action = e.premium > 200 ? 'Closed a big deal!' : actions[i % actions.length];
+    const ago   = timeAgo(e.ts);
     return `
       <div class="news-item">
         <div class="news-avatar" style="background:${color}">${initials(e.name)}</div>
         <div class="news-content">
           <div class="news-name">${e.name}</div>
-          <div class="news-action">${action} <span style="color:var(--red);font-weight:600">${fmtMoney(e.premium)}</span></div>
+          <div class="news-action">Closed a deal! <span style="color:var(--red);font-weight:600">${fmtMoney(e.premium)}</span></div>
         </div>
+        ${ago ? `<div style="font-size:0.7rem;color:var(--muted);flex-shrink:0;white-space:nowrap">${ago}</div>` : ''}
       </div>`;
   }).join('');
 }
