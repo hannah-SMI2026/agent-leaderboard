@@ -656,6 +656,21 @@ function todayStr()   { return new Date().toISOString().slice(0,10); }
 function weekStart()  { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
 function monthStart() { return new Date().toISOString().slice(0,8)+'01'; }
 
+// Normalize any date string to YYYY-MM-DD
+function normalizeDate(raw) {
+  if (!raw) return '';
+  raw = raw.trim();
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0,10);
+  // MM/DD/YYYY or M/D/YYYY
+  const m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  // DD/MM/YYYY fallback attempt — try parsing
+  const d = new Date(raw);
+  if (!isNaN(d)) return d.toISOString().slice(0,10);
+  return '';
+}
+
 // ── Sparkline SVG ──────────────────────────────────────────────────────────
 function sparkline(points, color, w=100, h=40) {
   if (!points || points.length < 2) {
@@ -710,8 +725,8 @@ function aggregate(rows, from, to) {
   const map={}, byDate={}; let totalDeals=0, totalPremium=0;
 
   rows.forEach(row => {
-    const date=(row[dateKey]||'').trim().slice(0,10);
-    if (date<from||date>to) return;
+    const date=normalizeDate(row[dateKey]);
+    if (!date||date<from||date>to) return;
     const name=cleanName(row[nameKey]); if (!name) return;
     const premium=parseFloat((row[premiumKey]||'0').replace(/[$,]/g,''))||0;
 
@@ -984,8 +999,8 @@ function filterSales(rowsArg) {
   });
 
   filtered.sort((a, b) => {
-    if (sort === 'date-desc')    return (b[dateKey]||'').localeCompare(a[dateKey]||'');
-    if (sort === 'date-asc')     return (a[dateKey]||'').localeCompare(b[dateKey]||'');
+    if (sort === 'date-desc')    return (normalizeDate(b[dateKey])||'').localeCompare(normalizeDate(a[dateKey])||'');
+    if (sort === 'date-asc')     return (normalizeDate(a[dateKey])||'').localeCompare(normalizeDate(b[dateKey])||'');
     if (sort === 'premium-desc') {
       const pa = parseFloat((a[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
       const pb = parseFloat((b[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
@@ -1011,8 +1026,9 @@ function filterSales(rowsArg) {
     const policy  = policyKey ? (row[policyKey] || '') : '';
     const color   = colorFor(name);
 
-    const dateFmt = dateRaw
-      ? new Date(dateRaw + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+    const normalized = normalizeDate(dateRaw);
+    const dateFmt = normalized
+      ? new Date(normalized + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
       : '—';
 
     const extra = policy;
