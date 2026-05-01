@@ -419,64 +419,63 @@
       display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     }
     .sales-search {
-      flex: 1; min-width: 200px;
-      padding: 9px 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
+      flex: 1; min-width: 200px; padding: 9px 16px;
+      border: 1.5px solid var(--border); border-radius: 10px;
       font-size: 0.85rem; font-family: inherit;
       color: var(--text); background: var(--white);
       outline: none; transition: border-color 0.15s;
     }
     .sales-search:focus { border-color: var(--red); }
-    .sales-sort-group { display: flex; align-items: center; gap: 8px; }
-    .sales-sort-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
-    .sales-sort-select {
-      padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 10px;
-      font-size: 0.82rem; font-family: inherit; color: var(--text);
-      background: var(--white); outline: none; cursor: pointer;
-      transition: border-color 0.15s;
-    }
-    .sales-sort-select:focus { border-color: var(--red); }
-    .sales-count { font-size: 0.78rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
+    .sales-count { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
 
-    .sales-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 14px;
-    }
+    /* Agent accordion */
+    .sales-list { display: flex; flex-direction: column; gap: 10px; }
 
-    .sale-card {
+    .agent-group {
       background: var(--white);
-      border-radius: 16px;
-      padding: 18px 20px;
-      box-shadow: 0 2px 10px rgba(30,38,64,.05);
+      border-radius: 14px;
       border: 1.5px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(30,38,64,.04);
+    }
+    .agent-group-header {
       display: flex; align-items: center; gap: 14px;
-      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      padding: 16px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
     }
-    .sale-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(30,38,64,.09);
-      border-color: #d9dff0;
-    }
-    .sale-avatar {
-      width: 46px; height: 46px; border-radius: 50%;
+    .agent-group-header:hover { background: #fafbff; }
+    .agent-group-avatar {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-size: 0.85rem; font-weight: 800; color: #fff;
-      flex-shrink: 0;
     }
-    .sale-info { flex: 1; min-width: 0; }
-    .sale-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
-    .sale-date { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
-    .sale-extra { font-size: 0.72rem; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sale-premium {
-      text-align: right; flex-shrink: 0;
+    .agent-group-info { flex: 1; min-width: 0; }
+    .agent-group-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+    .agent-group-meta { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .agent-group-premium { font-size: 1.2rem; font-weight: 900; color: var(--red); flex-shrink: 0; }
+    .agent-group-chevron {
+      font-size: 0.75rem; color: var(--muted); flex-shrink: 0;
+      transition: transform 0.2s;
     }
-    .sale-premium-val {
-      font-size: 1.15rem; font-weight: 900;
-      color: var(--red);
+    .agent-group.open .agent-group-chevron { transform: rotate(180deg); }
+
+    /* Individual deal rows */
+    .agent-deals { display: none; border-top: 1px solid var(--border); }
+    .agent-group.open .agent-deals { display: block; }
+
+    .deal-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
     }
-    .sale-premium-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .deal-row:last-child { border-bottom: none; }
+    .deal-row:hover { background: #fafbff; }
+    .deal-date { font-size: 0.8rem; color: var(--muted); min-width: 90px; flex-shrink: 0; }
+    .deal-policy { flex: 1; font-size: 0.8rem; color: var(--text); font-weight: 500; }
+    .deal-premium { font-size: 0.92rem; font-weight: 800; color: var(--red); flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -543,18 +542,9 @@
   <div id="view-sales" style="display:none; padding:24px 28px; flex:1; flex-direction:column; gap:20px;">
     <div class="sales-toolbar">
       <input class="sales-search" id="sales-search" type="text" placeholder="Search by name…" oninput="filterSales()" />
-      <div class="sales-sort-group">
-        <span class="sales-sort-label">Sort by</span>
-        <select class="sales-sort-select" id="sales-sort" onchange="filterSales()">
-          <option value="date-desc">Newest first</option>
-          <option value="date-asc">Oldest first</option>
-          <option value="premium-desc">Highest premium</option>
-          <option value="name-asc">Name A–Z</option>
-        </select>
-      </div>
       <div class="sales-count" id="sales-count"></div>
     </div>
-    <div class="sales-grid" id="sales-grid"></div>
+    <div class="sales-list" id="sales-grid"></div>
   </div>
 
   <!-- Content -->
@@ -979,75 +969,77 @@ function renderSales(rows) {
   filterSales(rows);
 }
 
+function toggleAgent(header) {
+  header.closest('.agent-group').classList.toggle('open');
+}
+
 function filterSales(rowsArg) {
   const rows = rowsArg instanceof Array ? rowsArg : allRows;
+  const el = document.getElementById('sales-grid');
+
   if (!rows.length) {
-    document.getElementById('sales-grid').innerHTML =
-      `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">💼</div><div class="empty-title">No sales data yet</div></div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-icon">💼</div><div class="empty-title">No sales data yet</div></div>`;
     return;
   }
 
   const keys       = Object.keys(rows[0]);
   const nameKey    = keys.find(k=>k==='submitted_by')  || keys.find(k=>/name/i.test(k))    || keys[0];
-  const dateKey    = keys.find(k=>k==='date')           || keys.find(k=>/date/i.test(k))    || keys[1];
-  const premiumKey = keys.find(k=>k==='total_premium')  || keys.find(k=>/premium|amount|price|value/i.test(k)) || keys[2];
+  const dateKey    = keys.find(k=>k==='date_only')     || keys.find(k=>k==='date')          || keys[1];
+  const premiumKey = keys.find(k=>k==='total_premium') || keys.find(k=>/premium|amount|price|value/i.test(k)) || keys[2];
   const policyKey  = keys.find(k=>k==='policy_type');
 
   const query = (document.getElementById('sales-search')?.value || '').toLowerCase();
-  const sort  = document.getElementById('sales-sort')?.value || 'date-desc';
 
-  let filtered = rows.filter(r => {
-    const name = cleanName(r[nameKey]).toLowerCase();
-    return !query || name.includes(query);
-  });
-
-  filtered.sort((a, b) => {
-    if (sort === 'date-desc')    return (normalizeDate(b[dateKey])||'').localeCompare(normalizeDate(a[dateKey])||'');
-    if (sort === 'date-asc')     return (normalizeDate(a[dateKey])||'').localeCompare(normalizeDate(b[dateKey])||'');
-    if (sort === 'premium-desc') {
-      const pa = parseFloat((a[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
-      const pb = parseFloat((b[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
-      return pb - pa;
-    }
-    if (sort === 'name-asc')     return (cleanName(a[nameKey])||'').localeCompare(cleanName(b[nameKey])||'');
-    return 0;
-  });
-
-  document.getElementById('sales-count').textContent =
-    `${filtered.length} deal${filtered.length !== 1 ? 's' : ''}`;
-
-  if (!filtered.length) {
-    document.getElementById('sales-grid').innerHTML =
-      `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">No results for "${query}"</div></div>`;
-    return;
-  }
-
-  document.getElementById('sales-grid').innerHTML = filtered.map(row => {
-    const name    = cleanName(row[nameKey]) || '—';
-    const dateRaw = (row[dateKey] || '').trim();
+  // Group by agent
+  const agentMap = {};
+  rows.forEach(row => {
+    const name = cleanName(row[nameKey]); if (!name) return;
+    if (query && !name.toLowerCase().includes(query)) return;
+    if (!agentMap[name]) agentMap[name] = { name, deals: [], totalPremium: 0 };
     const premium = parseFloat((row[premiumKey]||'0').replace(/[$,]/g,'')) || 0;
-    const policy  = policyKey ? (row[policyKey] || '') : '';
-    const color   = colorFor(name);
-
+    const dateRaw = (row[dateKey] || '').trim();
     const normalized = normalizeDate(dateRaw);
     const dateFmt = normalized
       ? new Date(normalized + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
       : '—';
+    const policy = policyKey ? (row[policyKey] || '') : '';
+    agentMap[name].deals.push({ dateFmt, policy, premium });
+    agentMap[name].totalPremium += premium;
+  });
 
-    const extra = policy;
+  const agents = Object.values(agentMap).sort((a,b) => b.totalPremium - a.totalPremium);
+
+  document.getElementById('sales-count').textContent =
+    `${agents.length} agent${agents.length !== 1 ? 's' : ''}`;
+
+  if (!agents.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">No results for "${query}"</div></div>`;
+    return;
+  }
+
+  el.innerHTML = agents.map(agent => {
+    const color = colorFor(agent.name);
+    const dealRows = agent.deals
+      .sort((a,b) => (b.dateFmt||'').localeCompare(a.dateFmt||''))
+      .map(d => `
+        <div class="deal-row">
+          <div class="deal-date">${d.dateFmt}</div>
+          <div class="deal-policy">${d.policy || '—'}</div>
+          <div class="deal-premium">${fmtMoney(d.premium)}</div>
+        </div>`).join('');
 
     return `
-      <div class="sale-card">
-        <div class="sale-avatar" style="background:${color}">${initials(name)}</div>
-        <div class="sale-info">
-          <div class="sale-name">${name}</div>
-          <div class="sale-date">📅 ${dateFmt}</div>
-          ${extra ? `<div class="sale-extra">${extra}</div>` : ''}
+      <div class="agent-group">
+        <div class="agent-group-header" onclick="toggleAgent(this)">
+          <div class="agent-group-avatar" style="background:${color}">${initials(agent.name)}</div>
+          <div class="agent-group-info">
+            <div class="agent-group-name">${agent.name}</div>
+            <div class="agent-group-meta">${agent.deals.length} deal${agent.deals.length !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="agent-group-premium">${fmtMoney(agent.totalPremium)}</div>
+          <div class="agent-group-chevron">▼</div>
         </div>
-        <div class="sale-premium">
-          <div class="sale-premium-val">${fmtMoney(premium)}</div>
-          <div class="sale-premium-lbl">Premium</div>
-        </div>
+        <div class="agent-deals">${dealRows}</div>
       </div>`;
   }).join('');
 }
