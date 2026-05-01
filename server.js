@@ -30,6 +30,19 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
+// Debug endpoint — shows raw first 5 rows of the sheet
+app.get('/api/debug', async (req, res) => {
+  if (!SHEET_URL) return res.json({ error: 'SHEET_URL not set' });
+  try {
+    const response = await fetch(SHEET_URL);
+    const text = await response.text();
+    const lines = text.trim().split('\n').slice(0, 6);
+    res.json({ lines });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Leaderboard running on http://localhost:${PORT}`);
   if (!SHEET_URL) {
