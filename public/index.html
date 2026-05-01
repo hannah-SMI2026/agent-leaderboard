@@ -262,40 +262,39 @@
     }
     .others-action-btn:hover { color: var(--red); }
 
-    .others-row {
+    /* ── Rankings list ───────────────────────────── */
+    .rank-row {
       display: flex; align-items: center; gap: 14px;
-      padding: 13px 22px;
+      padding: 12px 20px;
       border-bottom: 1px solid var(--border);
       transition: background 0.15s;
     }
-    .others-row:last-child { border-bottom: none; }
-    .others-row:hover { background: #fafbff; }
+    .rank-row:last-child { border-bottom: none; }
+    .rank-row:hover { background: #fafbff; }
 
-    .others-rank {
-      width: 24px; font-size: 0.8rem; font-weight: 700;
-      color: var(--muted); text-align: center; flex-shrink: 0;
+    .rank-num {
+      width: 28px; flex-shrink: 0; text-align: center;
+      font-size: 0.85rem; font-weight: 800; color: var(--muted);
     }
-    .others-avatar {
-      width: 38px; height: 38px; border-radius: 50%;
+    .rank-num.top1 { color: var(--gold); }
+    .rank-num.top2 { color: #94a3b8; }
+    .rank-num.top3 { color: #cd7c2f; }
+
+    .rank-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 800; color: #fff;
-      flex-shrink: 0;
+      font-size: 0.8rem; font-weight: 800; color: #fff;
     }
-    .others-info { flex: 1; min-width: 0; }
-    .others-name { font-size: 0.85rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .others-sub  { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
-
-    .others-chart { width: 60px; height: 24px; flex-shrink: 0; }
-
-    .others-deals { text-align: right; flex-shrink: 0; min-width: 60px; }
-    .others-deals-num { font-size: 1rem; font-weight: 800; color: var(--text); }
-    .others-deals-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-
-    .others-menu {
-      color: var(--muted); font-size: 1rem; cursor: pointer; flex-shrink: 0;
-      opacity: 0.5; transition: opacity 0.15s;
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .others-row:hover .others-menu { opacity: 1; }
+    .rank-premium { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+    .rank-deals { text-align: right; flex-shrink: 0; }
+    .rank-deals-num { font-size: 1.1rem; font-weight: 900; color: var(--text); line-height: 1; }
+    .rank-deals-lbl { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
 
     /* ── Right column ────────────────────────────── */
     .right-col {
@@ -566,16 +565,13 @@
         <div class="podium-card rank-3"><div class="empty shimmer" style="height:160px;width:100%"></div></div>
       </div>
 
-      <!-- Others table -->
+      <!-- Full rankings list -->
       <div class="others-panel" id="others-panel">
         <div class="others-header">
-          <div class="others-title">Other Advisors</div>
-          <div class="others-actions">
-            <button class="others-action-btn">Edit</button>
-            <button class="others-action-btn">Delete</button>
-          </div>
+          <div class="others-title">🏅 All Rankings</div>
         </div>
-        <div id="others-list"></div>
+        <div id="others-list" style="max-height:480px; overflow-y:auto;">
+        </div>
       </div>
     </div>
 
@@ -808,11 +804,11 @@ function renderAll(rows) {
   document.getElementById('deals-sub').textContent   = `${data.totalDeals} / ${Math.round(dealTarget)}`;
   document.getElementById('premium-sub').textContent = `${fmtMoney(data.totalPremium)} / ${fmtMoney(premiumTarget)}`;
 
-  // Podium
+  // Podium (top 3)
   renderPodium(data.agents.slice(0,3), from, to);
 
-  // Others (rank 4+)
-  renderOthers(data.agents.slice(3), from, to);
+  // Full rankings list
+  renderOthers(data.agents);
 
   // News
   renderNews(data.byDate || {});
@@ -863,33 +859,29 @@ function renderPodium(agents, from, to) {
   }).join('');
 }
 
-function renderOthers(agents, from, to) {
+function renderOthers(agents) {
   const el = document.getElementById('others-list');
   if (!agents.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">No other advisors</div></div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">No data yet</div></div>`;
     return;
   }
   el.innerHTML = agents.map((agent, i) => {
+    const rank  = i + 1;
     const color = colorFor(agent.name);
-    const rank  = i + 4;
-    const pts   = agentSparkPoints(agent, from, to);
-    const trendUp = pts.length >= 2 && pts[pts.length-1] >= pts[0];
-    const lineColor = trendUp ? '#3b6cf6' : '#ff4757';
-    const spark = sparkline(pts, lineColor, 80, 28);
+    const rankCls = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+    const medal   = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
     return `
-      <div class="others-row">
-        <div class="others-rank">${rank}</div>
-        <div class="others-avatar" style="background:${color}">${initials(agent.name)}</div>
-        <div class="others-info">
-          <div class="others-name">${agent.name}</div>
-          <div class="others-sub">${fmtMoney(agent.premium)} premium</div>
+      <div class="rank-row">
+        <div class="rank-num ${rankCls}">${medal}</div>
+        <div class="rank-avatar" style="background:${color}">${initials(agent.name)}</div>
+        <div class="rank-info">
+          <div class="rank-name">${agent.name}</div>
+          <div class="rank-premium">${fmtMoney(agent.premium)} premium</div>
         </div>
-        <svg class="others-chart" viewBox="0 0 80 28" preserveAspectRatio="none">${spark}</svg>
-        <div class="others-deals">
-          <div class="others-deals-num">${agent.deals}</div>
-          <div class="others-deals-lbl">Deals</div>
+        <div class="rank-deals">
+          <div class="rank-deals-num">${agent.deals}</div>
+          <div class="rank-deals-lbl">Deals</div>
         </div>
-        <div class="others-menu">⋮</div>
       </div>`;
   }).join('');
 }
