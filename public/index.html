@@ -783,18 +783,6 @@ function renderAll(rows) {
   document.getElementById('stat-deals').textContent   = data.totalDeals.toLocaleString();
   document.getElementById('stat-premium').textContent = fmtMoney(data.totalPremium);
 
-  // Progress (vs hypothetical target)
-  const dealTarget    = Math.max(data.totalDeals * 1.5, 10);
-  const premiumTarget = Math.max(data.totalPremium * 1.5, 100);
-  const dealPct    = Math.min(Math.round((data.totalDeals/dealTarget)*100), 100);
-  const premiumPct = Math.min(Math.round((data.totalPremium/premiumTarget)*100), 100);
-
-  document.getElementById('deals-pct').textContent   = dealPct + '%';
-  document.getElementById('premium-pct').textContent = premiumPct + '%';
-  document.getElementById('deals-bar').style.width   = dealPct + '%';
-  document.getElementById('premium-bar').style.width = premiumPct + '%';
-  document.getElementById('deals-sub').textContent   = `${data.totalDeals} / ${Math.round(dealTarget)}`;
-  document.getElementById('premium-sub').textContent = `${fmtMoney(data.totalPremium)} / ${fmtMoney(premiumTarget)}`;
 
   // Podium (top 3)
   renderPodium(data.agents.slice(0,3), from, to);
