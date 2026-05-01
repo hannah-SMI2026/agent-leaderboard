@@ -19,6 +19,9 @@ app.get('/api/data', async (req, res) => {
     const response = await fetch(SHEET_URL);
     if (!response.ok) throw new Error(`Sheet fetch failed: ${response.status}`);
     const csv = await response.text();
+    if (csv.trim().startsWith('<') || csv.includes('<!DOCTYPE')) {
+      return res.status(500).json({ error: 'SHEET_URL returned an HTML page, not CSV. Use the export URL: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=0' });
+    }
     res.set('Content-Type', 'text/plain');
     res.send(csv);
   } catch (err) {
