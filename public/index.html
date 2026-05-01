@@ -868,13 +868,23 @@ function renderOthers(agents) {
 
 function timeAgo(tsStr) {
   if (!tsStr) return '';
-  const t = new Date(tsStr);
+  // Google Sheets timestamps have no timezone — try as-is, then as UTC
+  let t = new Date(tsStr);
   if (isNaN(t)) return '';
+
+  // If result is in the future (sheet stored in UTC, parsed as local), re-parse as UTC
+  if (t > Date.now()) {
+    // Append UTC so JavaScript treats it as UTC instead of local
+    t = new Date(tsStr.trim() + ' UTC');
+    if (isNaN(t)) return '';
+  }
+
   const diff = Math.floor((Date.now() - t) / 1000);
+  if (diff < 0)    return 'just now';
   if (diff < 60)   return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
-  return `${Math.floor(diff/86400)}d ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400)return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
 
 function renderNews(byDate) {
