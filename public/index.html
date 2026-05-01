@@ -484,13 +484,7 @@
     <img src="/nsl-logo.png" alt="National Security Life" style="width:160px; filter:brightness(0) invert(1);" />
   </div>
 
-  <div class="project-selector">
-    <div>
-      <div class="project-label">Project</div>
-      <div class="project-name">Med Advantage</div>
-    </div>
-    <div class="project-caret">▾</div>
-  </div>
+
 
   <div class="nav-section">
     <div class="nav-item active" id="nav-leaderboard" onclick="switchView('leaderboard')"><span class="nav-icon">🏆</span> Leaderboard</div>
@@ -513,14 +507,22 @@
         Leaderboard for
       </div>
       <button class="period-pill" id="period-btn">
-        <span id="period-label">This Week</span> ▾
+        <span id="period-label">Today</span> ▾
         <select id="period-select" onchange="onPeriodChange(this.value)">
-          <option value="today">Today</option>
-          <option value="week" selected>This Week</option>
+          <option value="today" selected>Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="week">This Week</option>
           <option value="month">This Month</option>
-          <option value="all">All Time</option>
+          <option value="year">This Year</option>
+          <option value="custom">Custom…</option>
         </select>
       </button>
+      <div id="custom-picker" style="display:none; align-items:center; gap:6px; background:#fff; border:1.5px solid var(--border); border-radius:10px; padding:5px 12px;">
+        <input type="date" id="custom-from" style="border:none; outline:none; font-size:0.8rem; font-family:inherit; color:var(--text);" />
+        <span style="color:var(--muted); font-size:0.8rem;">→</span>
+        <input type="date" id="custom-to" style="border:none; outline:none; font-size:0.8rem; font-family:inherit; color:var(--text);" />
+        <button onclick="applyCustomRange()" style="background:var(--red);color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">Apply</button>
+      </div>
     </div>
     <div class="topbar-right">
       <div class="refresh-badge">
@@ -732,24 +734,54 @@ function aggregate(rows, from, to) {
 }
 
 // ── Period state ───────────────────────────────────────────────────────────
-let currentPeriod = 'week';
+let currentPeriod = 'today';
+let customFrom = '', customTo = '';
 let allRows = [];
+
+function yesterdayStr() {
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0,10);
+}
+function yearStart() { return new Date().getFullYear() + '-01-01'; }
 
 function getPeriodRange(period) {
   const today = todayStr();
   switch(period) {
-    case 'today': return [today, today];
-    case 'week':  return [weekStart(), today];
-    case 'month': return [monthStart(), today];
-    case 'all':   return ['2000-01-01', today];
-    default:      return [weekStart(), today];
+    case 'today':     return [today, today];
+    case 'yesterday': return [yesterdayStr(), yesterdayStr()];
+    case 'week':      return [weekStart(), today];
+    case 'month':     return [monthStart(), today];
+    case 'year':      return [yearStart(), today];
+    case 'custom':    return [customFrom || today, customTo || today];
+    default:          return [today, today];
   }
 }
 
 function onPeriodChange(val) {
+  const picker = document.getElementById('custom-picker');
+  if (val === 'custom') {
+    picker.style.display = 'flex';
+    // pre-fill with current period range so user has a sensible starting point
+    const [f, t] = getPeriodRange(currentPeriod === 'custom' ? 'week' : currentPeriod);
+    document.getElementById('custom-from').value = f;
+    document.getElementById('custom-to').value   = t;
+    return; // wait for Apply
+  }
+  picker.style.display = 'none';
   currentPeriod = val;
-  const labels = { today:'Today', week:'This Week', month:'This Month', all:'All Time' };
+  const labels = { today:'Today', yesterday:'Yesterday', week:'This Week', month:'This Month', year:'This Year' };
   document.getElementById('period-label').textContent = labels[val];
+  renderAll(allRows);
+}
+
+function applyCustomRange() {
+  customFrom = document.getElementById('custom-from').value;
+  customTo   = document.getElementById('custom-to').value;
+  if (!customFrom || !customTo) return;
+  if (customFrom > customTo) { [customFrom, customTo] = [customTo, customFrom]; }
+  currentPeriod = 'custom';
+  document.getElementById('period-label').textContent =
+    customFrom === customTo ? customFrom : customFrom + ' → ' + customTo;
   renderAll(allRows);
 }
 
