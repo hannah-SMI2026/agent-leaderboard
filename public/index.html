@@ -601,6 +601,14 @@
           <div class="empty"><div class="empty-icon">📰</div><div class="empty-title">No activity yet</div></div>
         </div>
       </div>
+
+      <!-- Policy breakdown -->
+      <div class="news-panel" style="flex:none;">
+        <div class="news-header">
+          <div class="news-title">Policy Types</div>
+        </div>
+        <div id="policy-breakdown" style="padding:8px 0;"></div>
+      </div>
     </div>
 
   </div><!-- end .content -->
@@ -713,7 +721,8 @@ function aggregate(rows, from, to) {
   // Debug: log first row's raw date and detected key
   if (rows[0]) console.log('[DEBUG] dateKey:', dateKey, '| raw date:', rows[0][dateKey], '| normalized:', normalizeDate(rows[0][dateKey]), '| from:', from, '| to:', to);
 
-  const map={}, byDate={}; let totalDeals=0, totalPremium=0;
+  const map={}, byDate={}, policyCount={}; let totalDeals=0, totalPremium=0;
+  const policyKey = keys.find(k=>k==='policy_type') || '';
 
   rows.forEach(row => {
     const date=normalizeDate(row[dateKey]);
@@ -727,6 +736,11 @@ function aggregate(rows, from, to) {
     map[name].dailyDeals[date]=(map[name].dailyDeals[date]||0)+1;
     totalDeals++; totalPremium+=premium;
 
+    if (policyKey) {
+      const pt = (row[policyKey]||'').trim();
+      if (pt) policyCount[pt] = (policyCount[pt]||0) + 1;
+    }
+
     // for news: collect most recent events
     const tsKey = keys.find(k=>k==='timestamp')||'';
     const ts = tsKey ? (row[tsKey]||'') : '';
@@ -735,7 +749,7 @@ function aggregate(rows, from, to) {
   });
 
   const agents = Object.values(map).sort((a,b)=>b.deals-a.deals||b.premium-a.premium);
-  return { agents, totalDeals, totalPremium, byDate };
+  return { agents, totalDeals, totalPremium, byDate, policyCount };
 }
 
 // ── Period state ───────────────────────────────────────────────────────────
@@ -809,6 +823,9 @@ function renderAll(rows) {
 
   // News
   renderNews(data.byDate || {});
+
+  // Policy breakdown
+  renderPolicyBreakdown(data.policyCount || {});
 }
 
 function agentSparkPoints(agent, from, to) {
@@ -848,10 +865,6 @@ function renderPodium(agents, from, to) {
         <div class="podium-stat">${agent.deals}</div>
         <div class="podium-stat-label">Closed Deals</div>
         <div class="podium-premium">${fmtMoney(agent.premium)}</div>
-        <div class="podium-actions">
-          <button class="podium-btn">Profile</button>
-          <button class="podium-btn">Message</button>
-        </div>
       </div>`;
   }).join('');
 }
@@ -881,6 +894,20 @@ function renderOthers(agents) {
         </div>
       </div>`;
   }).join('');
+}
+
+function renderPolicyBreakdown(policyCount) {
+  const el = document.getElementById('policy-breakdown');
+  const entries = Object.entries(policyCount).sort((a,b) => b[1]-a[1]);
+  if (!entries.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-title">No data</div></div>`;
+    return;
+  }
+  el.innerHTML = entries.map(([type, count], i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;${i < entries.length-1 ? 'border-bottom:1px solid var(--border);' : ''}">
+      <span style="font-size:0.82rem;font-weight:600;color:var(--text)">${type}</span>
+      <span style="font-size:0.82rem;font-weight:800;color:var(--text)">${count}</span>
+    </div>`).join('');
 }
 
 function timeAgo(tsStr) {
