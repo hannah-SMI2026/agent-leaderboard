@@ -169,9 +169,9 @@
     .content {
       flex: 1; padding: 24px 28px;
       display: grid;
-      grid-template-columns: 1fr 280px;
-      grid-template-rows: auto 1fr;
+      grid-template-columns: 1fr 340px;
       gap: 20px;
+      align-items: start;
     }
     @media (max-width: 1100px) { .content { grid-template-columns: 1fr; } }
 
@@ -285,7 +285,7 @@
     .others-name { font-size: 0.85rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .others-sub  { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
 
-    .others-chart { width: 80px; height: 28px; flex-shrink: 0; }
+    .others-chart { width: 60px; height: 24px; flex-shrink: 0; }
 
     .others-deals { text-align: right; flex-shrink: 0; min-width: 60px; }
     .others-deals-num { font-size: 1rem; font-weight: 800; color: var(--text); }
@@ -300,9 +300,9 @@
     /* ── Right column ────────────────────────────── */
     .right-col {
       display: flex; flex-direction: column; gap: 16px;
-      grid-row: 1 / span 2;
+      grid-column: 2;
     }
-    @media (max-width: 1100px) { .right-col { grid-row: auto; } }
+    .podium-section { grid-column: 1; }
 
     /* ── Stat cards ──────────────────────────────── */
     .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
