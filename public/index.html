@@ -4,809 +4,857 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agent Leaderboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0b1120;
-      --surface:   #111827;
-      --surface2:  #1a2540;
-      --border:    #1f2d45;
-      --text:      #e2e8f0;
-      --muted:     #6b7280;
-      --cyan:      #22d3ee;
-      --gold:      #f59e0b;
-      --purple:    #8b5cf6;
-      --teal:      #14b8a6;
-      --red:       #f87171;
+      --red:      #ff4757;
+      --red-soft: #fff0f1;
+      --navy:     #1e2640;
+      --navy2:    #252d47;
+      --navy3:    #2e3957;
+      --blue:     #3b6cf6;
+      --text:     #1e2640;
+      --muted:    #8e96b0;
+      --border:   #eef0f6;
+      --bg:       #f4f5fb;
+      --white:    #ffffff;
+      --gold:     #f59e0b;
+      --green:    #22c55e;
     }
 
     body {
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
-      padding: 20px;
+      display: flex;
     }
 
-    /* ── Header ────────────────────────────────── */
-    .header {
+    /* ── Sidebar ─────────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      min-height: 100vh;
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .sidebar-logo {
+      padding: 26px 22px 20px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
     }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
+    .logo-mark {
+      width: 34px; height: 34px;
+      background: var(--red);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: #fff;
     }
-    .header-logo {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--gold), #d97706);
+    .logo-text { font-size: 0.85rem; font-weight: 700; color: #fff; }
+
+    .project-selector {
+      margin: 0 16px 20px;
+      background: var(--navy2);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
+      padding: 9px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
     }
-    .header h1 {
-      font-size: 1.3rem;
+    .project-label { font-size: 0.75rem; color: #7c8db5; font-weight: 500; }
+    .project-name  { font-size: 0.82rem; color: #fff; font-weight: 600; margin-top: 1px; }
+    .project-caret { color: #7c8db5; font-size: 0.7rem; }
+
+    .nav-section {
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+    .nav-section-label {
+      font-size: 0.65rem;
       font-weight: 700;
-      letter-spacing: -0.3px;
+      color: #4e5e85;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 0 10px 8px;
     }
-    .header h1 span { color: var(--gold); }
-    .refresh-info {
-      font-size: 0.75rem;
-      color: var(--muted);
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px;
+      border-radius: 9px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #7c8db5;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: var(--navy2); color: #b8c4e0; }
+    .nav-item.active { background: var(--navy3); color: #fff; font-weight: 600; }
+    .nav-item.active .nav-icon { color: var(--red); }
+    .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 22px;
+      border-top: 1px solid var(--navy2);
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+    }
+    .sidebar-footer-icon { font-size: 1rem; color: #7c8db5; }
+    .sidebar-footer-text { font-size: 0.8rem; color: #7c8db5; font-weight: 500; }
+
+    /* ── Main ────────────────────────────────────── */
+    .main {
+      flex: 1;
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      min-width: 0;
     }
-    .refresh-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--teal);
+
+    /* ── Topbar ──────────────────────────────────── */
+    .topbar {
+      background: var(--white);
+      padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title {
+      font-size: 1.15rem; font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .topbar-title-icon { color: var(--red); font-size: 1.1rem; }
+    .period-pill {
+      background: var(--red);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      display: flex; align-items: center; gap: 5px;
+      cursor: pointer;
+      border: none;
+      position: relative;
+    }
+    .period-pill select {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .topbar-icon {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 0.95rem; color: var(--muted);
+      transition: background 0.15s;
+    }
+    .topbar-icon:hover { background: var(--border); }
+    .avatar-ring {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--red), #ff8c94);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; color: #fff;
+      cursor: pointer;
+    }
+    .refresh-badge {
+      font-size: 0.7rem; color: var(--muted);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .pulse-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
       animation: pulse 2s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-    /* ── Tabs ───────────────────────────────────── */
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
+    /* ── Content ─────────────────────────────────── */
+    .content {
+      flex: 1; padding: 24px 28px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      grid-template-rows: auto 1fr;
+      gap: 20px;
     }
-    .tab {
-      padding: 8px 20px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .tab.active {
-      background: var(--gold);
-      border-color: var(--gold);
-      color: #000;
-    }
-    .tab:hover:not(.active) {
-      border-color: var(--text);
-      color: var(--text);
-    }
+    @media (max-width: 1100px) { .content { grid-template-columns: 1fr; } }
 
-    /* ── Stat Cards ─────────────────────────────── */
-    .stat-cards {
+    /* ── Podium section ──────────────────────────── */
+    .podium-section { display: flex; flex-direction: column; gap: 20px; }
+
+    .podium-cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
-      margin-bottom: 20px;
     }
-    @media (max-width: 700px) { .stat-cards { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .podium-cards { grid-template-columns: 1fr; } }
+
+    .podium-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 22px 20px 18px;
+      box-shadow: 0 2px 12px rgba(30,38,64,.06);
+      display: flex; flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .podium-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(30,38,64,.1); }
+    .podium-card.rank-1 { border-top: 3px solid var(--gold); }
+    .podium-card.rank-2 { border-top: 3px solid var(--red); }
+    .podium-card.rank-3 { border-top: 3px solid var(--blue); }
+
+    .podium-medal {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      font-size: 1.3rem;
+    }
+    .podium-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 800; color: #fff;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    .podium-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .podium-badge {
+      display: inline-block;
+      font-size: 0.65rem; font-weight: 600;
+      padding: 3px 9px; border-radius: 999px;
+      margin: 5px 0 10px;
+    }
+    .badge-red    { background: var(--red); color: #fff; }
+    .badge-gray   { background: var(--bg); color: var(--muted); }
+    .badge-blue   { background: #e8eeff; color: var(--blue); }
+
+    .podium-chart { width: 100%; height: 40px; margin: 6px 0 10px; }
+
+    .podium-stat { font-size: 1.6rem; font-weight: 900; color: var(--text); line-height: 1; }
+    .podium-stat-label { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .podium-premium { font-size: 0.8rem; font-weight: 600; color: var(--blue); margin-top: 4px; }
+
+    .podium-actions {
+      display: flex; gap: 8px; margin-top: 14px; width: 100%;
+    }
+    .podium-btn {
+      flex: 1; padding: 7px; border-radius: 8px; border: 1.5px solid var(--border);
+      font-size: 0.7rem; font-weight: 700; color: var(--muted);
+      background: transparent; cursor: pointer; letter-spacing: 0.5px;
+      text-transform: uppercase; transition: all 0.15s;
+    }
+    .podium-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Others table ────────────────────────────── */
+    .others-panel {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(30,38,64,.06);
+      overflow: hidden;
+    }
+    .others-header {
+      padding: 18px 22px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .others-title { font-size: 1rem; font-weight: 700; }
+    .others-actions { display: flex; gap: 10px; }
+    .others-action-btn {
+      font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      background: none; border: none; cursor: pointer; letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: color 0.15s;
+    }
+    .others-action-btn:hover { color: var(--red); }
+
+    .others-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 22px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .others-row:last-child { border-bottom: none; }
+    .others-row:hover { background: #fafbff; }
+
+    .others-rank {
+      width: 24px; font-size: 0.8rem; font-weight: 700;
+      color: var(--muted); text-align: center; flex-shrink: 0;
+    }
+    .others-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .others-info { flex: 1; min-width: 0; }
+    .others-name { font-size: 0.85rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .others-sub  { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+
+    .others-chart { width: 80px; height: 28px; flex-shrink: 0; }
+
+    .others-deals { text-align: right; flex-shrink: 0; min-width: 60px; }
+    .others-deals-num { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .others-deals-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .others-menu {
+      color: var(--muted); font-size: 1rem; cursor: pointer; flex-shrink: 0;
+      opacity: 0.5; transition: opacity 0.15s;
+    }
+    .others-row:hover .others-menu { opacity: 1; }
+
+    /* ── Right column ────────────────────────────── */
+    .right-col {
+      display: flex; flex-direction: column; gap: 16px;
+      grid-row: 1 / span 2;
+    }
+    @media (max-width: 1100px) { .right-col { grid-row: auto; } }
+
+    /* ── Stat cards ──────────────────────────────── */
+    .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
     .stat-card {
-      border-radius: 14px;
-      padding: 20px 22px;
-      display: flex;
-      align-items: center;
+      border-radius: 16px;
+      padding: 20px 18px;
+      display: flex; flex-direction: column;
       justify-content: space-between;
-      border: 1px solid transparent;
+      min-height: 110px;
     }
-    .stat-card.blue   { background: #132042; border-color: #1e3a6e; }
-    .stat-card.purple { background: #1e1044; border-color: #4c1d95; }
-    .stat-card.teal   { background: #0d2a2a; border-color: #115e59; }
+    .stat-card.red   { background: linear-gradient(135deg, #ff4757, #ff6b78); }
+    .stat-card.dark  { background: var(--navy); }
 
-    .stat-label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .stat-card-val {
+      font-size: 2rem; font-weight: 900; color: #fff; line-height: 1;
     }
-    .stat-card.blue   .stat-label { color: var(--gold); }
-    .stat-card.purple .stat-label { color: #c4b5fd; }
-    .stat-card.teal   .stat-label { color: var(--teal); }
+    .stat-card-lbl { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,.65); margin-top: 6px; }
 
-    .stat-value {
-      font-size: 2.2rem;
-      font-weight: 800;
-      line-height: 1;
+    /* ── Progress ────────────────────────────────── */
+    .progress-panel {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 12px rgba(30,38,64,.06);
     }
-    .stat-icon { font-size: 2.4rem; opacity: 0.85; }
-
-    /* ── Main layout ────────────────────────────── */
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 16px;
-      align-items: start;
+    .progress-item { margin-bottom: 14px; }
+    .progress-item:last-child { margin-bottom: 0; }
+    .progress-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px;
     }
-    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+    .progress-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+    .progress-value { font-size: 0.75rem; font-weight: 700; color: var(--text); }
+    .progress-track {
+      height: 5px; background: var(--bg); border-radius: 999px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 999px; transition: width 0.8s ease;
+    }
+    .progress-fill.red  { background: var(--red); }
+    .progress-fill.blue { background: var(--blue); }
+    .progress-sub {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 4px;
+    }
+    .progress-sub-val { font-size: 0.7rem; color: var(--muted); }
 
-    /* ── Panel ──────────────────────────────────── */
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
+    /* ── News ────────────────────────────────────── */
+    .news-panel {
+      background: var(--white);
+      border-radius: 16px;
       overflow: hidden;
-    }
-    .panel-header {
-      padding: 18px 20px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-    .panel-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .panel-date { font-size: 0.78rem; color: var(--muted); }
-
-    /* ── Period panels (right column) ──────────── */
-    .right-col { display: flex; flex-direction: column; gap: 14px; }
-
-    .period-panel {
-      background: var(--surface);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    .period-panel.week  { border: 1px solid var(--cyan); }
-    .period-panel.month { border: 1px solid var(--gold); }
-    .period-panel.all   { border: 1px solid var(--purple); }
-
-    .period-header {
-      padding: 14px 16px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-    .period-header-left { display: flex; align-items: center; gap: 10px; }
-    .period-icon {
-      width: 34px; height: 34px;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
-    .period-panel.week  .period-icon { background: #0a2a33; }
-    .period-panel.month .period-icon { background: #2a1f00; }
-    .period-panel.all   .period-icon { background: #1e1044; }
-
-    .period-name { font-size: 0.95rem; font-weight: 700; }
-    .period-range { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
-
-    .period-totals { text-align: right; }
-    .period-deal-count { font-size: 1.4rem; font-weight: 800; }
-    .period-panel.week  .period-deal-count { color: var(--cyan); }
-    .period-panel.month .period-deal-count { color: var(--gold); }
-    .period-panel.all   .period-deal-count { color: var(--purple); }
-    .period-deals-label { font-size: 0.7rem; color: var(--muted); }
-    .period-premium { font-size: 0.78rem; font-weight: 600; }
-    .period-panel.week  .period-premium { color: var(--cyan); }
-    .period-panel.month .period-premium { color: var(--gold); }
-    .period-panel.all   .period-premium { color: var(--purple); }
-
-    /* ── Agent rows ─────────────────────────────── */
-    .agent-list { padding: 6px 0; max-height: 320px; overflow-y: auto; }
-    .agent-list::-webkit-scrollbar { width: 4px; }
-    .agent-list::-webkit-scrollbar-track { background: transparent; }
-    .agent-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    .agent-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      transition: background 0.15s;
-    }
-    .agent-row:hover { background: var(--surface2); }
-
-    .rank-badge {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-    .rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
-    .rank-2 { background: #1d4ed8; color: #fff; }
-    .rank-3 { background: #ea580c; color: #fff; }
-    .rank-4 { background: #7c3aed; color: #fff; }
-    .rank-5 { background: #0f766e; color: #fff; }
-    .rank-other { background: var(--surface2); color: var(--muted); }
-
-    .agent-avatar {
-      width: 34px; height: 34px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      font-weight: 800;
-      flex-shrink: 0;
-      letter-spacing: 0.5px;
-    }
-
-    .agent-name {
+      box-shadow: 0 2px 12px rgba(30,38,64,.06);
       flex: 1;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
     }
-
-    .agent-stats { text-align: right; flex-shrink: 0; }
-    .agent-deal-num {
-      font-size: 1.1rem;
-      font-weight: 800;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 4px;
-    }
-    .agent-deal-icon { font-size: 0.85rem; }
-    .agent-premium { font-size: 0.72rem; font-weight: 600; color: var(--cyan); margin-top: 1px; }
-
-    /* ── Today's leaders (big panel) ──────────── */
-    .today-list { padding: 8px 0; }
-    .today-agent-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 20px;
+    .news-header {
+      padding: 16px 18px 12px;
+      display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid var(--border);
+    }
+    .news-title { font-size: 0.9rem; font-weight: 700; }
+    .news-show-all { font-size: 0.72rem; font-weight: 600; color: var(--red); cursor: pointer; }
+
+    .news-list { padding: 6px 0; }
+    .news-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 18px;
       transition: background 0.15s;
     }
-    .today-agent-row:last-child { border-bottom: none; }
-    .today-agent-row:hover { background: var(--surface2); }
-
-    .today-rank {
-      font-size: 1.5rem;
-      font-weight: 900;
-      width: 36px;
-      text-align: center;
+    .news-item:hover { background: #fafbff; }
+    .news-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 800; color: #fff;
       flex-shrink: 0;
     }
-    .today-rank.r1 { color: var(--gold); }
-    .today-rank.r2 { color: #94a3b8; }
-    .today-rank.r3 { color: #cd7c2f; }
+    .news-content { flex: 1; min-width: 0; }
+    .news-name { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+    .news-action { font-size: 0.72rem; color: var(--muted); margin-top: 2px; line-height: 1.3; }
 
-    .today-avatar {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      font-weight: 800;
-      flex-shrink: 0;
+    /* ── Status bar ───────────────────────────────── */
+    .error-bar {
+      background: #fff0f1; color: var(--red); border: 1px solid #ffcdd0;
+      border-radius: 10px; padding: 10px 16px; font-size: 0.8rem;
+      margin: 0 28px; display: none;
     }
-    .today-info { flex: 1; }
-    .today-name { font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
-    .today-sub  { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+    .error-bar.show { display: block; }
 
-    .today-metrics { display: flex; gap: 24px; }
-    .today-metric { text-align: right; }
-    .today-metric-val { font-size: 1.2rem; font-weight: 800; }
-    .today-metric-val.gold   { color: var(--gold); }
-    .today-metric-val.cyan   { color: var(--cyan); }
-    .today-metric-lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    /* ── Empty state ─────────────────────────────── */
+    .empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 40px 20px;
+      color: var(--muted); gap: 8px;
+    }
+    .empty-icon { font-size: 2.5rem; opacity: 0.25; }
+    .empty-title { font-size: 0.85rem; font-weight: 600; }
+    .empty-sub { font-size: 0.75rem; }
 
-    /* ── Empty state ────────────────────────────── */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 48px 20px;
-      color: var(--muted);
-      gap: 10px;
+    /* ── Loading shimmer ─────────────────────────── */
+    .shimmer {
+      background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
     }
-    .empty-icon { font-size: 3rem; opacity: 0.3; }
-    .empty-title { font-size: 0.95rem; font-weight: 600; }
-    .empty-sub   { font-size: 0.78rem; }
-
-    /* ── Breakdown tab ──────────────────────────── */
-    .breakdown-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 12px;
-      padding: 16px;
-    }
-    .breakdown-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .breakdown-agent-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .breakdown-avatar {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      font-weight: 800;
-    }
-    .breakdown-name { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; }
-    .breakdown-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      text-align: center;
-    }
-    .breakdown-stat-val { font-size: 1rem; font-weight: 800; }
-    .breakdown-stat-val.gold { color: var(--gold); }
-    .breakdown-stat-val.cyan { color: var(--cyan); }
-    .breakdown-stat-val.purple { color: var(--purple); }
-    .breakdown-stat-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
-
-    /* ── Loading / error ────────────────────────── */
-    .status-bar {
-      text-align: center;
-      padding: 8px;
-      font-size: 0.75rem;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      display: none;
-    }
-    .status-bar.error   { background: #3b0a0a; color: var(--red); display: block; }
-    .status-bar.loading { background: var(--surface2); color: var(--muted); display: block; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <div class="header-logo">🏆</div>
-    <h1>Med Advantage <span>Advisors</span></h1>
-  </div>
-  <div class="refresh-info">
-    <div class="refresh-dot"></div>
-    <span id="last-updated">Loading…</span>
-  </div>
-</div>
-
-<div id="status-bar" class="status-bar"></div>
-
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('leaders')" id="tab-leaders">🏆 Leaders</button>
-  <button class="tab" onclick="switchTab('breakdown')" id="tab-breakdown">📊 Breakdown</button>
-</div>
-
-<!-- LEADERS TAB -->
-<div id="view-leaders">
-  <div class="stat-cards">
-    <div class="stat-card blue">
-      <div>
-        <div class="stat-label">Total Deals</div>
-        <div class="stat-value" id="total-deals">—</div>
-      </div>
-      <div class="stat-icon">🏆</div>
-    </div>
-    <div class="stat-card purple">
-      <div>
-        <div class="stat-label">Total Premium</div>
-        <div class="stat-value" id="total-premium">—</div>
-      </div>
-      <div class="stat-icon">💰</div>
-    </div>
-    <div class="stat-card teal">
-      <div>
-        <div class="stat-label">Avg Premium</div>
-        <div class="stat-value" id="avg-premium">—</div>
-      </div>
-      <div class="stat-icon">📈</div>
-    </div>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">∞</div>
+    <div class="logo-text">Guardian Benefits</div>
   </div>
 
-  <div class="main-grid">
-    <!-- Today's Leaders -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title">🏆 Today's Leaders</div>
-        <div class="panel-date" id="today-date"></div>
+  <div class="project-selector">
+    <div>
+      <div class="project-label">Project</div>
+      <div class="project-name">Med Advantage</div>
+    </div>
+    <div class="project-caret">▾</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Main</div>
+    <div class="nav-item"><span class="nav-icon">📊</span> Reports</div>
+    <div class="nav-item"><span class="nav-icon">💡</span> Insights</div>
+    <div class="nav-item"><span class="nav-icon">📋</span> Spreadsheets</div>
+    <div class="nav-item active"><span class="nav-icon">🏆</span> Leaderboard</div>
+    <div class="nav-item"><span class="nav-icon">⚙️</span> Administration</div>
+    <div class="nav-item"><span class="nav-icon">💼</span> Sales</div>
+    <div class="nav-item"><span class="nav-icon">📅</span> Schedule</div>
+  </div>
+
+  <div class="nav-section" style="margin-top:16px">
+    <div class="nav-section-label">Help</div>
+    <div class="nav-item"><span class="nav-icon">🔧</span> Settings</div>
+    <div class="nav-item"><span class="nav-icon">📚</span> Library</div>
+    <div class="nav-item"><span class="nav-icon">🆘</span> Support</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <span class="sidebar-footer-icon">☰</span>
+    <span class="sidebar-footer-text">More</span>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">
+        <span class="topbar-title-icon">🛡</span>
+        Leaderboard for
       </div>
-      <div id="today-content"></div>
+      <button class="period-pill" id="period-btn">
+        <span id="period-label">This Week</span> ▾
+        <select id="period-select" onchange="onPeriodChange(this.value)">
+          <option value="today">Today</option>
+          <option value="week" selected>This Week</option>
+          <option value="month">This Month</option>
+          <option value="all">All Time</option>
+        </select>
+      </button>
+    </div>
+    <div class="topbar-right">
+      <div class="refresh-badge">
+        <div class="pulse-dot"></div>
+        <span id="last-updated">Loading…</span>
+      </div>
+      <div class="topbar-icon">🔍</div>
+      <div class="topbar-icon">🔔</div>
+      <div class="topbar-icon">⊟</div>
+      <div class="avatar-ring" id="user-avatar">MA</div>
+    </div>
+  </div>
+
+  <!-- Error bar -->
+  <div class="error-bar" id="error-bar"></div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Left: podium + others -->
+    <div class="podium-section">
+      <!-- Top 3 podium cards -->
+      <div class="podium-cards" id="podium-cards">
+        <div class="podium-card rank-1"><div class="empty shimmer" style="height:160px;width:100%"></div></div>
+        <div class="podium-card rank-2"><div class="empty shimmer" style="height:160px;width:100%"></div></div>
+        <div class="podium-card rank-3"><div class="empty shimmer" style="height:160px;width:100%"></div></div>
+      </div>
+
+      <!-- Others table -->
+      <div class="others-panel" id="others-panel">
+        <div class="others-header">
+          <div class="others-title">Other Advisors</div>
+          <div class="others-actions">
+            <button class="others-action-btn">Edit</button>
+            <button class="others-action-btn">Delete</button>
+          </div>
+        </div>
+        <div id="others-list"></div>
+      </div>
     </div>
 
-    <!-- Right column: week / month / all-time -->
+    <!-- Right column -->
     <div class="right-col">
-      <!-- This Week -->
-      <div class="period-panel week">
-        <div class="period-header">
-          <div class="period-header-left">
-            <div class="period-icon">⏱</div>
-            <div>
-              <div class="period-name">This Week</div>
-              <div class="period-range" id="week-range"></div>
-            </div>
-          </div>
-          <div class="period-totals">
-            <div class="period-deal-count" id="week-deals">0</div>
-            <div class="period-deals-label">deals</div>
-            <div class="period-premium" id="week-premium">$0</div>
-          </div>
+      <!-- Stat cards -->
+      <div class="stat-cards">
+        <div class="stat-card red">
+          <div class="stat-card-val" id="stat-deals">—</div>
+          <div class="stat-card-lbl">Deals</div>
         </div>
-        <div class="agent-list" id="week-list"></div>
+        <div class="stat-card dark">
+          <div class="stat-card-val" id="stat-premium">—</div>
+          <div class="stat-card-lbl">Order Value</div>
+        </div>
       </div>
 
-      <!-- This Month -->
-      <div class="period-panel month">
-        <div class="period-header">
-          <div class="period-header-left">
-            <div class="period-icon">⭐</div>
-            <div>
-              <div class="period-name">This Month</div>
-              <div class="period-range" id="month-range"></div>
-            </div>
+      <!-- Progress bars -->
+      <div class="progress-panel">
+        <div class="progress-item">
+          <div class="progress-row">
+            <span class="progress-label">Deals</span>
+            <span class="progress-label" id="deals-pct">0%</span>
           </div>
-          <div class="period-totals">
-            <div class="period-deal-count" id="month-deals">0</div>
-            <div class="period-deals-label">deals</div>
-            <div class="period-premium" id="month-premium">$0</div>
+          <div class="progress-track">
+            <div class="progress-fill red" id="deals-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-sub">
+            <span class="progress-sub-val" id="deals-sub">0 / —</span>
           </div>
         </div>
-        <div class="agent-list" id="month-list"></div>
+        <div class="progress-item">
+          <div class="progress-row">
+            <span class="progress-label">Order Value</span>
+            <span class="progress-label" id="premium-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill blue" id="premium-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-sub">
+            <span class="progress-sub-val" id="premium-sub">$0 / —</span>
+          </div>
+        </div>
       </div>
 
-      <!-- All Time -->
-      <div class="period-panel all">
-        <div class="period-header">
-          <div class="period-header-left">
-            <div class="period-icon">🔥</div>
-            <div>
-              <div class="period-name">All Time</div>
-              <div class="period-range" id="all-range"></div>
-            </div>
-          </div>
-          <div class="period-totals">
-            <div class="period-deal-count" id="all-deals">0</div>
-            <div class="period-deals-label">deals</div>
-            <div class="period-premium" id="all-premium">$0</div>
-          </div>
+      <!-- News/Activity feed -->
+      <div class="news-panel">
+        <div class="news-header">
+          <div class="news-title">Activity</div>
+          <div class="news-show-all">Show all</div>
         </div>
-        <div class="agent-list" id="all-list"></div>
+        <div class="news-list" id="news-list">
+          <div class="empty"><div class="empty-icon">📰</div><div class="empty-title">No activity yet</div></div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- BREAKDOWN TAB -->
-<div id="view-breakdown" style="display:none">
-  <div class="breakdown-grid" id="breakdown-content"></div>
+  </div>
 </div>
 
 <script>
-// ── Avatar colours ─────────────────────────────────────────────────────────
-const COLORS = [
-  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c',
-  '#3498db','#9b59b6','#e91e63','#00bcd4','#ff5722',
-];
+// ── Helpers ────────────────────────────────────────────────────────────────
+const COLORS = ['#ff4757','#ff6348','#f59e0b','#3b6cf6','#22c55e','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316'];
 function colorFor(name) {
   let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
-  return COLORS[Math.abs(h) % COLORS.length];
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return COLORS[h % COLORS.length];
 }
 function initials(name) {
   return name.trim().split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
 }
 function fmtMoney(n) {
-  if (n >= 1000) return '$' + (n/1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'k';
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return '$' + (n/1000).toFixed(n%1000===0?0:1) + 'k';
   return '$' + Math.round(n).toLocaleString();
 }
-function rankIcon(r) {
-  if (r === 1) return '⚡';
-  if (r <= 3)  return '⭐';
-  return '';
-}
-function rankClass(r) {
-  return r <= 5 ? `rank-${r}` : 'rank-other';
-}
-
-// ── Date helpers ──────────────────────────────────────────────────────────
 function todayStr()   { return new Date().toISOString().slice(0,10); }
-function weekStart()  {
-  const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1); // Monday
-  return d.toISOString().slice(0,10);
-}
-function monthStart() { return new Date().toISOString().slice(0,8) + '01'; }
+function weekStart()  { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
+function monthStart() { return new Date().toISOString().slice(0,8)+'01'; }
 
-// ── CSV parser ────────────────────────────────────────────────────────────
+// ── Sparkline SVG ──────────────────────────────────────────────────────────
+function sparkline(points, color, w=100, h=40) {
+  if (!points || points.length < 2) {
+    const y = h/2;
+    return `<polyline points="0,${y} ${w},${y}" fill="none" stroke="${color}" stroke-width="2" opacity="0.4"/>`;
+  }
+  const mn = Math.min(...points), mx = Math.max(...points);
+  const range = mx - mn || 1;
+  const xs = points.map((_,i) => (i/(points.length-1))*w);
+  const ys = points.map(v => h - ((v-mn)/range)*(h-6) - 3);
+  const pts = xs.map((x,i) => `${x},${ys[i]}`).join(' ');
+  // gradient fill
+  const id = 'g' + Math.random().toString(36).slice(2,7);
+  return `
+    <defs>
+      <linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${pts} ${xs[xs.length-1]},${h} 0,${h}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+
+// ── CSV parser ─────────────────────────────────────────────────────────────
 function parseCSV(text) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
-  const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
+  const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''));
   return lines.slice(1).map(line => {
-    // handle quoted fields
-    const cols = [];
-    let cur = '', inQ = false;
+    const cols=[]; let cur='', inQ=false;
     for (const ch of line) {
-      if (ch === '"') { inQ = !inQ; }
-      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-      else cur += ch;
+      if (ch==='"') inQ=!inQ;
+      else if (ch===','&&!inQ) { cols.push(cur.trim()); cur=''; }
+      else cur+=ch;
     }
     cols.push(cur.trim());
-    const obj = {};
-    header.forEach((h, i) => obj[h] = cols[i] || '');
+    const obj={};
+    header.forEach((h,i) => obj[h]=cols[i]||'');
     return obj;
-  }).filter(r => r[header[0]]); // skip empty rows
+  }).filter(r => r[header[0]]);
 }
 
-// ── Aggregate deals ────────────────────────────────────────────────────────
-// Expected columns (case-insensitive, spaces→_):
-//   agent_name  |  date (YYYY-MM-DD)  |  premium (number, optional $ or ,)
+// ── Aggregate ──────────────────────────────────────────────────────────────
 function aggregate(rows, from, to) {
-  const map = {};
-  let totalDeals = 0, totalPremium = 0;
-
-  // detect column names
-  if (!rows.length) return { agents: [], totalDeals: 0, totalPremium: 0 };
+  if (!rows.length) return { agents:[], totalDeals:0, totalPremium:0 };
   const keys = Object.keys(rows[0]);
-  const nameKey    = keys.find(k => /name/i.test(k)) || keys[0];
-  const dateKey    = keys.find(k => /date/i.test(k)) || keys[1];
-  const premiumKey = keys.find(k => /premium|amount|price|value/i.test(k)) || keys[2];
+  const nameKey    = keys.find(k=>/name/i.test(k))||keys[0];
+  const dateKey    = keys.find(k=>/date/i.test(k))||keys[1];
+  const premiumKey = keys.find(k=>/premium|amount|price|value/i.test(k))||keys[2];
+
+  const map={}, byDate={}; let totalDeals=0, totalPremium=0;
 
   rows.forEach(row => {
-    const date = (row[dateKey] || '').trim().slice(0,10);
-    if (date < from || date > to) return;
-    const name = (row[nameKey] || '').trim();
-    if (!name) return;
-    const premium = parseFloat((row[premiumKey] || '0').replace(/[$,]/g,'')) || 0;
+    const date=(row[dateKey]||'').trim().slice(0,10);
+    if (date<from||date>to) return;
+    const name=(row[nameKey]||'').trim(); if (!name) return;
+    const premium=parseFloat((row[premiumKey]||'0').replace(/[$,]/g,''))||0;
 
-    if (!map[name]) map[name] = { name, deals: 0, premium: 0 };
+    if (!map[name]) map[name]={ name, deals:0, premium:0, dailyDeals:{} };
     map[name].deals++;
-    map[name].premium += premium;
-    totalDeals++;
-    totalPremium += premium;
+    map[name].premium+=premium;
+    map[name].dailyDeals[date]=(map[name].dailyDeals[date]||0)+1;
+    totalDeals++; totalPremium+=premium;
+
+    // for news: collect most recent events
+    if (!byDate[date]) byDate[date]=[];
+    byDate[date].push({ name, premium });
   });
 
-  const agents = Object.values(map).sort((a,b) => b.deals - a.deals || b.premium - a.premium);
-  return { agents, totalDeals, totalPremium };
+  const agents = Object.values(map).sort((a,b)=>b.deals-a.deals||b.premium-a.premium);
+  return { agents, totalDeals, totalPremium, byDate };
 }
 
-// ── Render helpers ─────────────────────────────────────────────────────────
-function renderAgentRow(agent, rank) {
-  const rc = rankClass(rank);
-  const ic = rankIcon(rank);
-  const color = colorFor(agent.name);
-  return `
-    <div class="agent-row">
-      <div class="rank-badge ${rc}">${rank}</div>
-      <div class="agent-avatar" style="background:${color}">${initials(agent.name)}</div>
-      <div class="agent-name">${agent.name}</div>
-      <div class="agent-stats">
-        <div class="agent-deal-num">
-          ${ic ? `<span class="agent-deal-icon">${ic}</span>` : ''}
-          ${agent.deals}
-        </div>
-        <div class="agent-premium">${fmtMoney(agent.premium)}</div>
-      </div>
-    </div>`;
-}
+// ── Period state ───────────────────────────────────────────────────────────
+let currentPeriod = 'week';
+let allRows = [];
 
-function renderEmpty(msg = 'No deals yet', sub = '') {
-  return `<div class="empty-state">
-    <div class="empty-icon">🏆</div>
-    <div class="empty-title">${msg}</div>
-    ${sub ? `<div class="empty-sub">${sub}</div>` : ''}
-  </div>`;
-}
-
-function renderTodayRow(agent, rank) {
-  const color = colorFor(agent.name);
-  const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
-  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-  return `
-    <div class="today-agent-row">
-      <div class="today-rank ${rankCls}">${medal}</div>
-      <div class="today-avatar" style="background:${color}">${initials(agent.name)}</div>
-      <div class="today-info">
-        <div class="today-name">${agent.name}</div>
-        <div class="today-sub">Rank #${rank} today</div>
-      </div>
-      <div class="today-metrics">
-        <div class="today-metric">
-          <div class="today-metric-val gold">${agent.deals}</div>
-          <div class="today-metric-lbl">Deals</div>
-        </div>
-        <div class="today-metric">
-          <div class="today-metric-val cyan">${fmtMoney(agent.premium)}</div>
-          <div class="today-metric-lbl">Premium</div>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ── Render all panels ──────────────────────────────────────────────────────
-function renderAll(rows) {
+function getPeriodRange(period) {
   const today = todayStr();
-  const wStart = weekStart();
-  const mStart = monthStart();
-
-  const todayData = aggregate(rows, today, today);
-  const weekData  = aggregate(rows, wStart, today);
-  const monthData = aggregate(rows, mStart, today);
-  const allData   = aggregate(rows, '2000-01-01', today);
-
-  // Stats bar (all-time)
-  document.getElementById('total-deals').textContent   = allData.totalDeals.toLocaleString();
-  document.getElementById('total-premium').textContent = fmtMoney(allData.totalPremium);
-  document.getElementById('avg-premium').textContent   = allData.totalDeals
-    ? fmtMoney(allData.totalPremium / allData.totalDeals) : '$0';
-
-  // Today
-  const todayFmt = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-  document.getElementById('today-date').textContent = todayFmt;
-  document.getElementById('today-content').innerHTML = todayData.agents.length
-    ? `<div class="today-list">${todayData.agents.slice(0,10).map((a,i) => renderTodayRow(a,i+1)).join('')}</div>`
-    : renderEmpty('No deals yet today', 'Be the first to close a deal!');
-
-  // Week
-  document.getElementById('week-range').textContent  = `${wStart} — ${today}`;
-  document.getElementById('week-deals').textContent  = weekData.totalDeals;
-  document.getElementById('week-premium').textContent= fmtMoney(weekData.totalPremium);
-  document.getElementById('week-list').innerHTML = weekData.agents.length
-    ? weekData.agents.slice(0,8).map((a,i) => renderAgentRow(a,i+1)).join('')
-    : renderEmpty('No deals this week');
-
-  // Month
-  document.getElementById('month-range').textContent  = `${mStart} — ${today}`;
-  document.getElementById('month-deals').textContent  = monthData.totalDeals;
-  document.getElementById('month-premium').textContent= fmtMoney(monthData.totalPremium);
-  document.getElementById('month-list').innerHTML = monthData.agents.length
-    ? monthData.agents.slice(0,8).map((a,i) => renderAgentRow(a,i+1)).join('')
-    : renderEmpty('No deals this month');
-
-  // All-time
-  if (rows.length) {
-    const dates = rows.map(r => Object.values(r)[1]).filter(Boolean).sort();
-    document.getElementById('all-range').textContent = `${dates[0]} — ${today}`;
+  switch(period) {
+    case 'today': return [today, today];
+    case 'week':  return [weekStart(), today];
+    case 'month': return [monthStart(), today];
+    case 'all':   return ['2000-01-01', today];
+    default:      return [weekStart(), today];
   }
-  document.getElementById('all-deals').textContent  = allData.totalDeals;
-  document.getElementById('all-premium').textContent= fmtMoney(allData.totalPremium);
-  document.getElementById('all-list').innerHTML = allData.agents.length
-    ? allData.agents.slice(0,8).map((a,i) => renderAgentRow(a,i+1)).join('')
-    : renderEmpty('No data yet');
-
-  // Breakdown
-  renderBreakdown(allData.agents, rows, today, wStart, mStart);
 }
 
-function renderBreakdown(agents, rows, today, wStart, mStart) {
+function onPeriodChange(val) {
+  currentPeriod = val;
+  const labels = { today:'Today', week:'This Week', month:'This Month', all:'All Time' };
+  document.getElementById('period-label').textContent = labels[val];
+  renderAll(allRows);
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function renderAll(rows) {
+  const [from, to] = getPeriodRange(currentPeriod);
+  const data = aggregate(rows, from, to);
+
+  // Stats
+  document.getElementById('stat-deals').textContent   = data.totalDeals.toLocaleString();
+  document.getElementById('stat-premium').textContent = fmtMoney(data.totalPremium);
+
+  // Progress (vs hypothetical target)
+  const dealTarget    = Math.max(data.totalDeals * 1.5, 10);
+  const premiumTarget = Math.max(data.totalPremium * 1.5, 100);
+  const dealPct    = Math.min(Math.round((data.totalDeals/dealTarget)*100), 100);
+  const premiumPct = Math.min(Math.round((data.totalPremium/premiumTarget)*100), 100);
+
+  document.getElementById('deals-pct').textContent   = dealPct + '%';
+  document.getElementById('premium-pct').textContent = premiumPct + '%';
+  document.getElementById('deals-bar').style.width   = dealPct + '%';
+  document.getElementById('premium-bar').style.width = premiumPct + '%';
+  document.getElementById('deals-sub').textContent   = `${data.totalDeals} / ${Math.round(dealTarget)}`;
+  document.getElementById('premium-sub').textContent = `${fmtMoney(data.totalPremium)} / ${fmtMoney(premiumTarget)}`;
+
+  // Podium
+  renderPodium(data.agents.slice(0,3), from, to);
+
+  // Others (rank 4+)
+  renderOthers(data.agents.slice(3), from, to);
+
+  // News
+  renderNews(data.byDate || {});
+}
+
+function agentSparkPoints(agent, from, to) {
+  // build daily series from dailyDeals
+  const days=[]; let d=new Date(from);
+  const end=new Date(to);
+  while(d<=end){ days.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  return days.map(dt => agent.dailyDeals[dt]||0);
+}
+
+const RANK_COLORS = ['#f59e0b','#ff4757','#3b6cf6'];
+const RANK_MEDAL  = ['🥇','🥈','🥉'];
+const RANK_BADGE  = ['badge-gray','badge-red','badge-blue'];
+const RANK_TEXTS  = ['Top Advisor','Just closed a deal!','On a roll'];
+
+function renderPodium(agents, from, to) {
+  const el = document.getElementById('podium-cards');
   if (!agents.length) {
-    document.getElementById('breakdown-content').innerHTML =
-      `<div style="grid-column:1/-1">${renderEmpty('No data available')}</div>`;
+    el.innerHTML = [1,2,3].map(i => `
+      <div class="podium-card rank-${i}">
+        <div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No data</div></div>
+      </div>`).join('');
     return;
   }
-  document.getElementById('breakdown-content').innerHTML = agents.map(agent => {
-    const agentRows = rows.filter(r => {
-      const keys = Object.keys(r);
-      const nameKey = keys.find(k => /name/i.test(k)) || keys[0];
-      return (r[nameKey]||'').trim() === agent.name;
-    });
-    const todayD  = aggregate(agentRows, today, today);
-    const weekD   = aggregate(agentRows, wStart, today);
-    const color   = colorFor(agent.name);
+  el.innerHTML = agents.map((agent, i) => {
+    const color  = colorFor(agent.name);
+    const pts    = agentSparkPoints(agent, from, to);
+    const spark  = sparkline(pts, RANK_COLORS[i] || '#3b6cf6');
+    const rankCls= `rank-${i+1}`;
     return `
-      <div class="breakdown-card">
-        <div class="breakdown-agent-header">
-          <div class="breakdown-avatar" style="background:${color}">${initials(agent.name)}</div>
-          <div class="breakdown-name">${agent.name}</div>
-        </div>
-        <div class="breakdown-stats">
-          <div>
-            <div class="breakdown-stat-val gold">${todayD.totalDeals}</div>
-            <div class="breakdown-stat-lbl">Today</div>
-          </div>
-          <div>
-            <div class="breakdown-stat-val cyan">${weekD.totalDeals}</div>
-            <div class="breakdown-stat-lbl">Week</div>
-          </div>
-          <div>
-            <div class="breakdown-stat-val purple">${agent.deals}</div>
-            <div class="breakdown-stat-lbl">All Time</div>
-          </div>
-        </div>
-        <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:0.75rem;">
-          <span style="color:var(--muted)">Total Premium</span>
-          <span style="font-weight:700; color:var(--cyan)">${fmtMoney(agent.premium)}</span>
+      <div class="podium-card ${rankCls}">
+        <div class="podium-medal">${RANK_MEDAL[i]}</div>
+        <div class="podium-avatar" style="background:${color}">${initials(agent.name)}</div>
+        <div class="podium-name">${agent.name}</div>
+        <div class="podium-badge ${RANK_BADGE[i]}">${RANK_TEXTS[i]}</div>
+        <svg class="podium-chart" viewBox="0 0 100 40" preserveAspectRatio="none">${spark}</svg>
+        <div class="podium-stat">${agent.deals}</div>
+        <div class="podium-stat-label">Closed Deals</div>
+        <div class="podium-premium">${fmtMoney(agent.premium)}</div>
+        <div class="podium-actions">
+          <button class="podium-btn">Profile</button>
+          <button class="podium-btn">Message</button>
         </div>
       </div>`;
   }).join('');
 }
 
-// ── Tab switching ─────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('view-leaders').style.display   = tab === 'leaders'   ? '' : 'none';
-  document.getElementById('view-breakdown').style.display = tab === 'breakdown' ? '' : 'none';
-  document.getElementById('tab-leaders').classList.toggle('active',   tab === 'leaders');
-  document.getElementById('tab-breakdown').classList.toggle('active', tab === 'breakdown');
+function renderOthers(agents, from, to) {
+  const el = document.getElementById('others-list');
+  if (!agents.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">No other advisors</div></div>`;
+    return;
+  }
+  el.innerHTML = agents.map((agent, i) => {
+    const color = colorFor(agent.name);
+    const rank  = i + 4;
+    const pts   = agentSparkPoints(agent, from, to);
+    const trendUp = pts.length >= 2 && pts[pts.length-1] >= pts[0];
+    const lineColor = trendUp ? '#3b6cf6' : '#ff4757';
+    const spark = sparkline(pts, lineColor, 80, 28);
+    return `
+      <div class="others-row">
+        <div class="others-rank">${rank}</div>
+        <div class="others-avatar" style="background:${color}">${initials(agent.name)}</div>
+        <div class="others-info">
+          <div class="others-name">${agent.name}</div>
+          <div class="others-sub">${fmtMoney(agent.premium)} premium</div>
+        </div>
+        <svg class="others-chart" viewBox="0 0 80 28" preserveAspectRatio="none">${spark}</svg>
+        <div class="others-deals">
+          <div class="others-deals-num">${agent.deals}</div>
+          <div class="others-deals-lbl">Deals</div>
+        </div>
+        <div class="others-menu">⋮</div>
+      </div>`;
+  }).join('');
 }
 
-// ── Fetch & refresh ───────────────────────────────────────────────────────
-let lastRows = [];
-
-function setStatus(type, msg) {
-  const el = document.getElementById('status-bar');
-  el.className = 'status-bar ' + type;
-  el.textContent = msg;
+function renderNews(byDate) {
+  const el = document.getElementById('news-list');
+  // Get most recent 8 events
+  const events = [];
+  Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date, deals]) => {
+    deals.forEach(d => events.push({ ...d, date }));
+  });
+  if (!events.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📰</div><div class="empty-title">No activity yet</div></div>`;
+    return;
+  }
+  const actions = ['Just closed a deal!','Added a new client','Hit daily target','Beat personal record','Closed a big deal!'];
+  el.innerHTML = events.slice(0,8).map((e, i) => {
+    const color = colorFor(e.name);
+    const action = e.premium > 200 ? 'Closed a big deal!' : actions[i % actions.length];
+    return `
+      <div class="news-item">
+        <div class="news-avatar" style="background:${color}">${initials(e.name)}</div>
+        <div class="news-content">
+          <div class="news-name">${e.name}</div>
+          <div class="news-action">${action} <span style="color:var(--red);font-weight:600">${fmtMoney(e.premium)}</span></div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
+// ── Fetch ──────────────────────────────────────────────────────────────────
 async function fetchData() {
   try {
     const res = await fetch('/api/data');
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: res.statusText }));
-      setStatus('error', '⚠ ' + (err.error || 'Failed to load data'));
+      const err = await res.json().catch(()=>({error:res.statusText}));
+      showError(err.error || 'Failed to load');
       return;
     }
     const csv = await res.text();
-    if (csv.trim().startsWith('{')) {
-      const err = JSON.parse(csv);
-      setStatus('error', '⚠ ' + err.error);
-      return;
-    }
-    document.getElementById('status-bar').className = 'status-bar'; // hide
-    lastRows = parseCSV(csv);
-    renderAll(lastRows);
-    document.getElementById('last-updated').textContent =
-      'Live · updated ' + new Date().toLocaleTimeString();
-  } catch (e) {
-    setStatus('error', '⚠ Could not reach the server: ' + e.message);
-  }
+    if (csv.trim().startsWith('{')) { showError(JSON.parse(csv).error); return; }
+    hideError();
+    allRows = parseCSV(csv);
+    renderAll(allRows);
+    document.getElementById('last-updated').textContent = 'Live · ' + new Date().toLocaleTimeString();
+  } catch(e) { showError('Cannot reach server: ' + e.message); }
 }
 
-// Initial load + refresh every 60 seconds
-setStatus('loading', 'Loading data…');
+function showError(msg) {
+  const el = document.getElementById('error-bar');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+}
+function hideError() {
+  document.getElementById('error-bar').classList.remove('show');
+}
+
 fetchData();
 setInterval(fetchData, 60_000);
 </script>
