@@ -575,30 +575,63 @@
     .dash-change-sub { font-size: 0.7rem; color: #b0b8d0; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
 
     /* ── Heatmap ─────────────────────────────────── */
+    /* ── Bottom row: heatmap + performance panel side-by-side ── */
+    .dash-bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 0; }
+    @media (max-width: 1000px) { .dash-bottom-row { grid-template-columns: 1fr; } }
+
     .heatmap-panel {
       background: var(--white); border-radius: 16px;
       box-shadow: 0 1px 3px rgba(30,38,64,.05), 0 4px 16px rgba(30,38,64,.07);
-      border: 1.5px solid var(--border); padding: 22px 24px;
+      border: 1.5px solid var(--border); padding: 18px 16px;
     }
-    .heatmap-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-    .heatmap-sub   { font-size: 0.72rem; color: var(--muted); margin-bottom: 18px; }
+    .heatmap-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .heatmap-sub   { font-size: 0.68rem; color: var(--muted); margin-bottom: 12px; }
     .heatmap-outer { display: flex; gap: 0; overflow-x: auto; }
-    .heatmap-y-axis { display: flex; flex-direction: column; flex-shrink: 0; margin-top: 22px; margin-right: 6px; gap: 3px; }
-    .heatmap-y-lbl { height: 26px; font-size: 0.62rem; color: var(--muted); text-align: right; display: flex; align-items: center; justify-content: flex-end; width: 34px; }
+    .heatmap-y-axis { display: flex; flex-direction: column; flex-shrink: 0; margin-top: 20px; margin-right: 4px; gap: 2px; }
+    .heatmap-y-lbl { height: 22px; font-size: 0.58rem; color: var(--muted); text-align: right; display: flex; align-items: center; justify-content: flex-end; width: 28px; }
     .heatmap-grid-area { display: flex; flex-direction: column; gap: 0; min-width: 0; }
-    .heatmap-x-axis { display: flex; gap: 3px; margin-bottom: 4px; padding-left: 0; }
-    .heatmap-x-lbl { width: 32px; font-size: 0.68rem; font-weight: 600; color: var(--muted); text-align: center; }
-    .heatmap-rows { display: flex; flex-direction: column; gap: 3px; }
-    .heatmap-row { display: flex; gap: 3px; }
+    .heatmap-x-axis { display: flex; gap: 2px; margin-bottom: 3px; padding-left: 0; }
+    .heatmap-x-lbl { width: 26px; font-size: 0.62rem; font-weight: 600; color: var(--muted); text-align: center; }
+    .heatmap-rows { display: flex; flex-direction: column; gap: 2px; }
+    .heatmap-row { display: flex; gap: 2px; }
     .heatmap-cell {
-      width: 32px; height: 26px; border-radius: 5px; cursor: pointer;
+      width: 26px; height: 22px; border-radius: 4px; cursor: pointer;
       transition: transform 0.12s, filter 0.12s; position: relative;
       flex-shrink: 0;
     }
     .heatmap-cell:hover { transform: scale(1.25); z-index: 10; filter: brightness(0.9); }
-    .heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
-    .heatmap-legend-lbl { font-size: 0.65rem; color: var(--muted); }
-    .heatmap-legend-swatch { width: 26px; height: 10px; border-radius: 3px; }
+    .heatmap-legend { display: flex; align-items: center; gap: 5px; margin-top: 10px; }
+    .heatmap-legend-lbl { font-size: 0.62rem; color: var(--muted); }
+    .heatmap-legend-swatch { width: 20px; height: 9px; border-radius: 3px; }
+
+    /* ── Performance panel (right side of bottom row) ── */
+    .dash-perf-panel {
+      background: var(--white); border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(30,38,64,.05), 0 4px 16px rgba(30,38,64,.07);
+      border: 1.5px solid var(--border); overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .dash-top3-section { padding: 14px 18px; border-bottom: 1.5px solid var(--border); }
+    .dash-top3-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .dash-top3-item { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .dash-top3-item:last-child { border-bottom: none; }
+    .dash-top3-medal { font-size: 1.1rem; width: 22px; text-align: center; flex-shrink: 0; }
+    .dash-top3-name { flex: 1; font-size: 0.82rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-top3-stat { font-size: 0.75rem; font-weight: 800; color: var(--navy); flex-shrink: 0; }
+    .dash-top3-premium { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; margin-left: 4px; }
+    .dash-top3-empty { padding: 20px; text-align: center; font-size: 0.8rem; color: var(--muted); }
+
+    .dash-teams-row { display: grid; grid-template-columns: 1fr 1fr; flex: 1; min-height: 0; }
+    .dash-team-col { display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); }
+    .dash-team-col:last-child { border-right: none; }
+    .dash-team-head { padding: 9px 14px; font-size: 0.75rem; font-weight: 700; color: var(--navy); background: #f8f9fb; border-bottom: 1px solid var(--border); letter-spacing: 0.02em; }
+    .dash-team-list { overflow-y: auto; max-height: 220px; }
+    .dash-team-item { display: flex; align-items: center; gap: 7px; padding: 6px 14px; border-bottom: 1px solid var(--border); }
+    .dash-team-item:last-child { border-bottom: none; }
+    .dash-team-rank { font-size: 0.68rem; color: var(--muted); width: 14px; text-align: right; flex-shrink: 0; }
+    .dash-team-name { flex: 1; font-size: 0.76rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-team-count { font-size: 0.73rem; font-weight: 800; color: var(--navy); flex-shrink: 0; }
+    .dash-team-empty { padding: 16px; text-align: center; font-size: 0.75rem; color: var(--muted); }
 
     .dash-breakdown-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 900px) { .dash-breakdown-row { grid-template-columns: 1fr; } }
@@ -742,11 +775,23 @@
       </div>
     </div>
 
-    <!-- Sales by Time heatmap -->
-    <div class="heatmap-panel">
-      <div class="heatmap-title">Deals by Day &amp; Time</div>
-      <div class="heatmap-sub">Activity heatmap in Eastern Time — darker = more deals</div>
-      <div id="heatmap-container"></div>
+    <!-- Bottom row: heatmap + performance panel -->
+    <div class="dash-bottom-row">
+      <!-- Left: Sales by Time heatmap -->
+      <div class="heatmap-panel">
+        <div class="heatmap-title">Deals by Day &amp; Time</div>
+        <div class="heatmap-sub">Activity heatmap in Eastern Time — darker = more deals</div>
+        <div id="heatmap-container"></div>
+      </div>
+
+      <!-- Right: Top performers + team rankings -->
+      <div class="dash-perf-panel">
+        <div class="dash-top3-section">
+          <div class="dash-top3-title">🏆 Top Performers</div>
+          <div id="dash-top3-list"></div>
+        </div>
+        <div class="dash-teams-row" id="dash-teams-row"></div>
+      </div>
     </div>
   </div>
 
@@ -1356,27 +1401,54 @@ function normalizeCarrier(raw) {
 }
 
 function aggregateDash(rows, from, to) {
-  if (!rows.length) return { deals: 0, premium: 0, policyCount: {}, carrierCount: {} };
+  if (!rows.length) return { deals: 0, premium: 0, policyCount: {}, carrierCount: {}, agents: [], teams: [] };
   const keys       = Object.keys(rows[0]);
   const dateKey    = keys.find(k=>k==='date_only') || keys.find(k=>k==='date') || keys[1];
   const premiumKey = keys.find(k=>k==='total_premium') || keys.find(k=>/premium|amount/i.test(k)) || keys[2];
+  const nameKey    = keys.find(k=>k==='submitted_by') || keys.find(k=>/name/i.test(k)) || keys[0];
   const policyKey  = keys.find(k=>k==='policy_type') || '';
   const carrierKey = keys.find(k=>/carrier/i.test(k)) || (keys.length > 9 ? keys[9] : '');
-  const tsKey      = keys.find(k=>k==='timestamp') || '';
+  const teamKey    = keys.find(k=>k==='team'||/\bteam\b/i.test(k)) || (keys.length > 26 ? keys[26] : '');
 
   let deals = 0, premium = 0;
-  const policyCount = {}, carrierCount = {};
+  const policyCount = {}, carrierCount = {}, agentMap = {}, teamMap = {};
 
   rows.forEach(row => {
-    const ts   = tsKey ? (row[tsKey]||'') : '';
-    const date = (ts ? toESTDate(ts) : '') || normalizeDate(row[dateKey]);
+    const date = normalizeDate(row[dateKey]);
     if (!date || date < from || date > to) return;
     deals++;
-    premium += parseMoney(row[premiumKey]);
+    const prem = parseMoney(row[premiumKey]);
+    premium += prem;
+
+    const name = cleanName(row[nameKey]);
+    if (name) {
+      if (!agentMap[name]) agentMap[name] = { name, deals: 0, premium: 0 };
+      agentMap[name].deals++;
+      agentMap[name].premium += prem;
+    }
+
     if (policyKey)  { const v=(row[policyKey]||'').trim();          if(v) policyCount[v]  = (policyCount[v]||0)+1;  }
     if (carrierKey) { const v=normalizeCarrier(row[carrierKey]||''); if(v) carrierCount[v] = (carrierCount[v]||0)+1; }
+
+    if (teamKey && name) {
+      const team = (row[teamKey]||'').trim();
+      if (team) {
+        if (!teamMap[team]) teamMap[team] = { name: team, deals: 0, premium: 0, agents: {} };
+        teamMap[team].deals++;
+        teamMap[team].premium += prem;
+        if (!teamMap[team].agents[name]) teamMap[team].agents[name] = { name, deals: 0, premium: 0 };
+        teamMap[team].agents[name].deals++;
+        teamMap[team].agents[name].premium += prem;
+      }
+    }
   });
-  return { deals, premium, policyCount, carrierCount };
+
+  const agents = Object.values(agentMap).sort((a,b) => b.deals - a.deals || b.premium - a.premium);
+  const teams  = Object.values(teamMap)
+    .sort((a,b) => b.deals - a.deals)
+    .map(t => ({ ...t, agents: Object.values(t.agents).sort((a,b) => b.deals - a.deals) }));
+
+  return { deals, premium, policyCount, carrierCount, agents, teams };
 }
 
 function prevRange(from, to) {
@@ -1531,6 +1603,45 @@ function renderBreakdown(elId, countObj) {
     </div>`).join('');
 }
 
+function renderDashTop3(agents) {
+  const el = document.getElementById('dash-top3-list');
+  if (!el) return;
+  const medals = ['🥇','🥈','🥉'];
+  const top = agents.slice(0, 3);
+  if (!top.length) {
+    el.innerHTML = `<div class="dash-top3-empty">No data for this period</div>`;
+    return;
+  }
+  el.innerHTML = top.map((a, i) => `
+    <div class="dash-top3-item">
+      <span class="dash-top3-medal">${medals[i]}</span>
+      <span class="dash-top3-name">${a.name}</span>
+      <span class="dash-top3-stat">${a.deals} deal${a.deals !== 1 ? 's' : ''}</span>
+      <span class="dash-top3-premium">${fmtMoney(a.premium)}</span>
+    </div>`).join('');
+}
+
+function renderDashTeams(teams) {
+  const el = document.getElementById('dash-teams-row');
+  if (!el) return;
+  if (!teams.length) {
+    el.innerHTML = `<div class="dash-team-empty" style="grid-column:1/-1">No team data for this period</div>`;
+    return;
+  }
+  el.innerHTML = teams.map(team => `
+    <div class="dash-team-col">
+      <div class="dash-team-head">👥 ${team.name} <span style="font-weight:400;opacity:.6">(${team.deals} deals)</span></div>
+      <div class="dash-team-list">
+        ${team.agents.map((a, i) => `
+          <div class="dash-team-item">
+            <span class="dash-team-rank">${i+1}</span>
+            <span class="dash-team-name">${a.name}</span>
+            <span class="dash-team-count">${a.deals}</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
 function renderDashboard(rows) {
   document.getElementById('dash-from').value = dashFrom;
   document.getElementById('dash-to').value   = dashTo;
@@ -1587,7 +1698,11 @@ function renderDashboard(rows) {
   renderBreakdown('dash-policy',  curr.policyCount);
   renderBreakdown('dash-carrier', curr.carrierCount);
 
-  // Heatmap
+  // Top performers + team rankings
+  renderDashTop3(curr.agents);
+  renderDashTeams(curr.teams);
+
+  // Heatmap (reactive to current filter)
   const heatGrid = buildHeatmap(rows, dashFrom, dashTo);
   renderHeatmap(heatGrid);
 }
