@@ -1353,29 +1353,38 @@ function renderDashboard(rows) {
 
   const curr = aggregateDash(rows, dashFrom, dashTo);
 
-  // Smart previous period: for presets use natural calendar period before, not same-length slice
+  // Smart previous period — use string/integer arithmetic to avoid UTC-parse timezone bugs
   let pFrom, pTo, prevLabel;
+
+  // Parse YYYY-MM-DD safely as local integers
+  function parseYMD(s) { const [y,m,d] = s.split('-').map(Number); return {y,m,d}; }
+  function fmtYMD(y,m,d) { return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+  // Last day of month m (1-based) in year y
+  function lastDayOf(y,m) { return new Date(y, m, 0).getDate(); }
+
   if (dashPreset === 'week') {
-    // Last full Mon–Sun week
-    const mon = new Date(dashFrom);
-    const sun = new Date(mon); sun.setDate(mon.getDate() - 1);
-    const prevMon = new Date(sun); prevMon.setDate(sun.getDate() - 6);
-    pFrom = prevMon.toISOString().slice(0,10);
-    pTo   = sun.toISOString().slice(0,10);
+    // dashFrom = Monday of this week; prev = Mon–Sun of last week
+    const {y,m,d} = parseYMD(dashFrom);
+    const prevSun = new Date(y, m-1, d-1);
+    const prevMon = new Date(y, m-1, d-7);
+    pFrom = fmtYMD(prevMon.getFullYear(), prevMon.getMonth()+1, prevMon.getDate());
+    pTo   = fmtYMD(prevSun.getFullYear(), prevSun.getMonth()+1, prevSun.getDate());
     prevLabel = 'last week';
   } else if (dashPreset === 'month') {
-    const d = new Date(dashFrom);
-    d.setMonth(d.getMonth() - 1);
-    pFrom = d.toISOString().slice(0,8) + '01';
-    pTo   = new Date(d.getFullYear(), d.getMonth()+1, 0).toISOString().slice(0,10);
+    // dashFrom = YYYY-MM-01; prev = full previous calendar month
+    const {y,m} = parseYMD(dashFrom);
+    const pm = m === 1 ? 12 : m - 1;
+    const py = m === 1 ? y - 1 : y;
+    pFrom = fmtYMD(py, pm, 1);
+    pTo   = fmtYMD(py, pm, lastDayOf(py, pm));
     prevLabel = 'last month';
   } else if (dashPreset === 'year') {
     const y = new Date().getFullYear() - 1;
-    pFrom = y + '-01-01'; pTo = y + '-12-31';
+    pFrom = `${y}-01-01`; pTo = `${y}-12-31`;
     prevLabel = 'last year';
   } else {
     [pFrom, pTo] = prevRange(dashFrom, dashTo);
-    prevLabel = `${pFrom} → ${pTo}`;
+    prevLabel = `prev period`;
   }
 
   const prev = aggregateDash(rows, pFrom, pTo);
