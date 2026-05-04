@@ -1288,6 +1288,18 @@ function applyDashRange() {
   renderDashboard(allRows);
 }
 
+function normalizeCarrier(raw) {
+  if (!raw) return '';
+  const s = raw.trim().toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (/amam|am\s*am|occidental|american\s*am/i.test(raw)) return 'American Amicable';
+  if (/baltimore|balt|b\.?\s*l\.?$/i.test(raw)) return 'Baltimore Life';
+  if (/\bcica\b|cica\s*life/i.test(raw)) return 'CICA';
+  if (/corebridge|aig/i.test(raw)) return 'Corebridge';
+  if (/guarantee|gtl/i.test(raw)) return 'Guarantee Trust Life';
+  if (/trans\s*am/i.test(raw)) return 'TransAmerica';
+  return raw.trim();
+}
+
 function aggregateDash(rows, from, to) {
   if (!rows.length) return { deals: 0, premium: 0, policyCount: {}, carrierCount: {} };
   const keys       = Object.keys(rows[0]);
@@ -1306,8 +1318,8 @@ function aggregateDash(rows, from, to) {
     if (!date || date < from || date > to) return;
     deals++;
     premium += parseMoney(row[premiumKey]);
-    if (policyKey)  { const v=(row[policyKey]||'').trim();  if(v) policyCount[v]  = (policyCount[v]||0)+1;  }
-    if (carrierKey) { const v=(row[carrierKey]||'').trim(); if(v) carrierCount[v] = (carrierCount[v]||0)+1; }
+    if (policyKey)  { const v=(row[policyKey]||'').trim();          if(v) policyCount[v]  = (policyCount[v]||0)+1;  }
+    if (carrierKey) { const v=normalizeCarrier(row[carrierKey]||''); if(v) carrierCount[v] = (carrierCount[v]||0)+1; }
   });
   return { deals, premium, policyCount, carrierCount };
 }
