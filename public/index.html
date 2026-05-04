@@ -598,6 +598,15 @@
       flex-shrink: 0;
     }
     .heatmap-cell:hover { transform: scale(1.25); z-index: 10; filter: brightness(0.9); }
+    /* Custom tooltip */
+    #heatmap-tooltip {
+      position: fixed; pointer-events: none; z-index: 9999;
+      background: #1e263f; color: #fff; font-size: 0.72rem; font-weight: 600;
+      padding: 5px 10px; border-radius: 7px; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,.25);
+      opacity: 0; transition: opacity 0.1s;
+    }
+    #heatmap-tooltip.visible { opacity: 1; }
     .heatmap-legend { display: flex; align-items: center; gap: 5px; margin-top: 10px; }
     .heatmap-legend-lbl { font-size: 0.62rem; color: var(--muted); }
     .heatmap-legend-swatch { width: 20px; height: 9px; border-radius: 3px; }
@@ -681,6 +690,7 @@
   </style>
 </head>
 <body>
+<div id="heatmap-tooltip"></div>
 
 <!-- Sidebar -->
 <aside class="sidebar">
@@ -812,7 +822,7 @@
       <!-- Right: Top performers podium + team rankings -->
       <div class="dash-perf-panel">
         <div class="dash-podium-wrap" id="dash-podium-wrap">
-          <div class="dash-podium-title" style="display:flex;align-items:center;gap:7px;justify-content:center">${IC.trophy} Top Performers</div>
+          <div class="dash-podium-title" style="display:flex;align-items:center;gap:7px;justify-content:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H4a2 2 0 000 4c0 3 2 6 8 6s8-3 8-6a2 2 0 000-4h-2"/><path d="M6 3h12v7a6 6 0 01-12 0V3z"/><path d="M8 21h8M12 17v4"/></svg> Top Performers</div>
           <div id="dash-top3-list"></div>
         </div>
         <div class="dash-teams-row" id="dash-teams-row"></div>
@@ -1628,8 +1638,8 @@ function renderHeatmap(grid) {
     const cells = DAY_LABELS.map((_,d) => {
       const count = grid[d][h];
       const color = heatColor(count, max);
-      const tip   = `${DAY_LABELS[d]} ${ampm}: ${count} deal${count!==1?'s':''}`;
-      return `<div class="heatmap-cell" style="background:${color}" title="${tip}" data-count="${count}"></div>`;
+      const tip   = `${DAY_LABELS[d]} ${ampm}: ${count} sale${count!==1?'s':''}`;
+      return `<div class="heatmap-cell" style="background:${color}" data-tip="${tip}" data-count="${count}"></div>`;
     }).join('');
     return `<div class="heatmap-row">${cells}</div>`;
   }).join('');
@@ -1656,6 +1666,20 @@ function renderHeatmap(grid) {
       ${legend}
       <span class="heatmap-legend-lbl">More</span>
     </div>`;
+
+  // Wire custom tooltip
+  const tip = document.getElementById('heatmap-tooltip');
+  el.querySelectorAll('.heatmap-cell').forEach(cell => {
+    cell.addEventListener('mouseenter', e => {
+      tip.textContent = cell.dataset.tip;
+      tip.classList.add('visible');
+    });
+    cell.addEventListener('mousemove', e => {
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top  = (e.clientY - 32) + 'px';
+    });
+    cell.addEventListener('mouseleave', () => tip.classList.remove('visible'));
+  });
 }
 
 function renderBreakdown(elId, countObj) {
