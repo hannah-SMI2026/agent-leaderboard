@@ -555,24 +555,50 @@
     @media (max-width: 900px) { .dash-stat-row { grid-template-columns: 1fr 1fr; } }
 
     .dash-stat-card {
-      background: var(--white); border-radius: 20px; padding: 20px 22px;
-      box-shadow: 0 1px 3px rgba(30,38,64,.06), 0 8px 24px rgba(30,38,64,.08);
-      border: none;
+      background: var(--white); border-radius: 16px; padding: 22px 24px;
+      box-shadow: 0 1px 3px rgba(30,38,64,.05), 0 4px 16px rgba(30,38,64,.07);
+      border: 1.5px solid var(--border);
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    .dash-stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(30,38,64,.1), 0 16px 40px rgba(30,38,64,.1); }
-    .dash-stat-top { display: flex; align-items: flex-start; justify-content: space-between; }
-    .dash-stat-val { font-size: 2.2rem; font-weight: 900; color: var(--text); line-height: 1; }
-    .dash-stat-lbl { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 6px; }
+    .dash-stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(30,38,64,.09), 0 16px 40px rgba(30,38,64,.09); }
+    .dash-sc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .dash-stat-lbl { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+    .dash-stat-val { font-size: 2.4rem; font-weight: 900; color: var(--text); line-height: 1; letter-spacing: -1px; }
     .dash-change {
       display: inline-flex; align-items: center; gap: 3px;
-      font-size: 0.75rem; font-weight: 700; padding: 3px 8px;
+      font-size: 0.75rem; font-weight: 700; padding: 4px 9px;
       border-radius: 999px; flex-shrink: 0;
     }
     .dash-change.up   { background: #dcfce7; color: #16a34a; }
     .dash-change.down { background: #fee2e2; color: #dc2626; }
     .dash-change.flat { background: var(--bg); color: var(--muted); }
-    .dash-change-sub { font-size: 0.7rem; color: var(--muted); margin-top: 6px; }
+    .dash-change-sub { font-size: 0.7rem; color: #b0b8d0; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+    /* ── Heatmap ─────────────────────────────────── */
+    .heatmap-panel {
+      background: var(--white); border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(30,38,64,.05), 0 4px 16px rgba(30,38,64,.07);
+      border: 1.5px solid var(--border); padding: 22px 24px;
+    }
+    .heatmap-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .heatmap-sub   { font-size: 0.72rem; color: var(--muted); margin-bottom: 18px; }
+    .heatmap-outer { display: flex; gap: 0; overflow-x: auto; }
+    .heatmap-y-axis { display: flex; flex-direction: column; flex-shrink: 0; margin-top: 22px; margin-right: 6px; gap: 3px; }
+    .heatmap-y-lbl { height: 26px; font-size: 0.62rem; color: var(--muted); text-align: right; display: flex; align-items: center; justify-content: flex-end; width: 34px; }
+    .heatmap-grid-area { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+    .heatmap-x-axis { display: flex; gap: 3px; margin-bottom: 4px; padding-left: 0; }
+    .heatmap-x-lbl { width: 32px; font-size: 0.68rem; font-weight: 600; color: var(--muted); text-align: center; }
+    .heatmap-rows { display: flex; flex-direction: column; gap: 3px; }
+    .heatmap-row { display: flex; gap: 3px; }
+    .heatmap-cell {
+      width: 32px; height: 26px; border-radius: 5px; cursor: pointer;
+      transition: transform 0.12s, filter 0.12s; position: relative;
+      flex-shrink: 0;
+    }
+    .heatmap-cell:hover { transform: scale(1.25); z-index: 10; filter: brightness(0.9); }
+    .heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+    .heatmap-legend-lbl { font-size: 0.65rem; color: var(--muted); }
+    .heatmap-legend-swatch { width: 26px; height: 10px; border-radius: 3px; }
 
     .dash-breakdown-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 900px) { .dash-breakdown-row { grid-template-columns: 1fr; } }
@@ -689,24 +715,18 @@
 
     <div class="dash-stat-row">
       <div class="dash-stat-card">
-        <div class="dash-stat-top">
-          <div><div class="dash-stat-val" id="dash-deals">—</div><div class="dash-stat-lbl">Total Deals</div></div>
-          <div id="dash-deals-change"></div>
-        </div>
+        <div class="dash-sc-head"><span class="dash-stat-lbl">Total Deals</span><div id="dash-deals-change"></div></div>
+        <div class="dash-stat-val" id="dash-deals">—</div>
         <div class="dash-change-sub" id="dash-deals-sub"></div>
       </div>
       <div class="dash-stat-card">
-        <div class="dash-stat-top">
-          <div><div class="dash-stat-val" id="dash-premium">—</div><div class="dash-stat-lbl">Total Premium</div></div>
-          <div id="dash-premium-change"></div>
-        </div>
+        <div class="dash-sc-head"><span class="dash-stat-lbl">Total Premium</span><div id="dash-premium-change"></div></div>
+        <div class="dash-stat-val" id="dash-premium">—</div>
         <div class="dash-change-sub" id="dash-premium-sub"></div>
       </div>
       <div class="dash-stat-card">
-        <div class="dash-stat-top">
-          <div><div class="dash-stat-val" id="dash-avg">—</div><div class="dash-stat-lbl">Avg Premium</div></div>
-          <div id="dash-avg-change"></div>
-        </div>
+        <div class="dash-sc-head"><span class="dash-stat-lbl">Avg Premium per Deal</span><div id="dash-avg-change"></div></div>
+        <div class="dash-stat-val" id="dash-avg">—</div>
         <div class="dash-change-sub" id="dash-avg-sub"></div>
       </div>
     </div>
@@ -720,6 +740,13 @@
         <div class="dash-panel-header">Carrier Breakdown</div>
         <div id="dash-carrier"></div>
       </div>
+    </div>
+
+    <!-- Sales by Time heatmap -->
+    <div class="heatmap-panel">
+      <div class="heatmap-title">Deals by Day &amp; Time</div>
+      <div class="heatmap-sub">Activity heatmap in Eastern Time — darker = more deals</div>
+      <div id="heatmap-container"></div>
     </div>
   </div>
 
@@ -1376,6 +1403,103 @@ function changeBadge(curr, prev, id, subId, label, prevDisplay) {
   sub.textContent = `${label}: ${prevDisplay}`;
 }
 
+// ── Heatmap ────────────────────────────────────────────────────────────────
+const HEATMAP_COLORS = ['#f3f4f6','#ddd6fe','#a78bfa','#7c3aed','#5b21b6','#3b0764'];
+const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+// Show hours 7am–10pm
+const HEATMAP_HOURS = Array.from({length:16}, (_,i) => i+7); // 7..22
+
+function heatColor(count, max) {
+  if (!count || !max) return HEATMAP_COLORS[0];
+  const pct = count / max;
+  if (pct <= 0.15) return HEATMAP_COLORS[1];
+  if (pct <= 0.35) return HEATMAP_COLORS[2];
+  if (pct <= 0.60) return HEATMAP_COLORS[3];
+  if (pct <= 0.82) return HEATMAP_COLORS[4];
+  return HEATMAP_COLORS[5];
+}
+
+function buildHeatmap(rows, from, to) {
+  // grid[day0..6][hour0..23]
+  const grid = Array.from({length:7}, () => Array(24).fill(0));
+  if (!rows.length) return grid;
+  const keys    = Object.keys(rows[0]);
+  const tsKey   = keys.find(k=>k==='timestamp') || '';
+  const dateKey = keys.find(k=>k==='date_only') || keys[1];
+
+  rows.forEach(row => {
+    const ts   = tsKey ? (row[tsKey]||'') : '';
+    const date = (ts ? toESTDate(ts) : '') || normalizeDate(row[dateKey]);
+    if (!date || date < from || date > to) return;
+    if (!ts) return;
+
+    let t = new Date(ts.trim());
+    if (isNaN(t)) return;
+    if (t.getTime() > Date.now() + 43200000) t = new Date(ts.trim() + ' UTC');
+    if (isNaN(t)) return;
+
+    // Get day-of-week and hour in Eastern time using Intl
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'short', hour: '2-digit', hour12: false
+      }).formatToParts(t);
+      const dayAbbr = parts.find(p=>p.type==='weekday')?.value || '';
+      const hourVal = parseInt(parts.find(p=>p.type==='hour')?.value || '0') % 24;
+      const dayIdx  = DAY_LABELS.indexOf(dayAbbr);
+      if (dayIdx >= 0 && hourVal >= 0 && hourVal < 24) grid[dayIdx][hourVal]++;
+    } catch(e) {}
+  });
+  return grid;
+}
+
+function renderHeatmap(grid) {
+  const el = document.getElementById('heatmap-container');
+
+  // Find max for scaling
+  let max = 0;
+  HEATMAP_HOURS.forEach(h => DAY_LABELS.forEach((_,d) => { if(grid[d][h] > max) max=grid[d][h]; }));
+
+  // Build x-axis (days)
+  const xLabels = DAY_LABELS.map(d =>
+    `<div class="heatmap-x-lbl">${d}</div>`).join('');
+
+  // Build rows (one per hour)
+  const rows = HEATMAP_HOURS.map(h => {
+    const ampm = h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
+    const cells = DAY_LABELS.map((_,d) => {
+      const count = grid[d][h];
+      const color = heatColor(count, max);
+      const tip   = `${DAY_LABELS[d]} ${ampm}: ${count} deal${count!==1?'s':''}`;
+      return `<div class="heatmap-cell" style="background:${color}" title="${tip}" data-count="${count}"></div>`;
+    }).join('');
+    return `<div class="heatmap-row">${cells}</div>`;
+  }).join('');
+
+  const yLabels = HEATMAP_HOURS.map(h => {
+    const ampm = h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
+    return `<div class="heatmap-y-lbl">${ampm}</div>`;
+  }).join('');
+
+  // Legend
+  const legend = HEATMAP_COLORS.map((c,i) =>
+    `<div class="heatmap-legend-swatch" style="background:${c}"></div>`).join('');
+
+  el.innerHTML = `
+    <div class="heatmap-outer">
+      <div class="heatmap-y-axis">${yLabels}</div>
+      <div class="heatmap-grid-area">
+        <div class="heatmap-x-axis">${xLabels}</div>
+        <div class="heatmap-rows">${rows}</div>
+      </div>
+    </div>
+    <div class="heatmap-legend">
+      <span class="heatmap-legend-lbl">Less</span>
+      ${legend}
+      <span class="heatmap-legend-lbl">More</span>
+    </div>`;
+}
+
 function renderBreakdown(elId, countObj) {
   const el = document.getElementById(elId);
   const entries = Object.entries(countObj).sort((a,b)=>b[1]-a[1]);
@@ -1444,6 +1568,10 @@ function renderDashboard(rows) {
 
   renderBreakdown('dash-policy',  curr.policyCount);
   renderBreakdown('dash-carrier', curr.carrierCount);
+
+  // Heatmap
+  const heatGrid = buildHeatmap(rows, dashFrom, dashTo);
+  renderHeatmap(heatGrid);
 }
 
 // ── Sales rendering ────────────────────────────────────────────────────────
