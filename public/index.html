@@ -503,6 +503,75 @@
     .deal-date { font-size: 0.8rem; color: var(--muted); min-width: 90px; flex-shrink: 0; }
     .deal-policy { flex: 1; font-size: 0.8rem; color: var(--text); font-weight: 500; }
     .deal-premium { font-size: 0.92rem; font-weight: 800; color: var(--text); flex-shrink: 0; }
+
+    /* ── Dashboard ───────────────────────────────── */
+    .dash-wrap { padding: 24px 28px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+    .dash-range-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .dash-range-label { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+    .dash-preset {
+      padding: 6px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid var(--border); background: var(--white); color: var(--muted);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .dash-preset.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .dash-date-inputs {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 5px 12px;
+    }
+    .dash-date-inputs input { border: none; outline: none; font-size: 0.8rem; font-family: inherit; color: var(--text); }
+    .dash-apply {
+      background: var(--navy); color: #fff; border: none; border-radius: 7px;
+      padding: 4px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    }
+    .dash-compare-label {
+      font-size: 0.75rem; color: var(--muted); margin-left: auto;
+    }
+
+    .dash-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .dash-stat-row { grid-template-columns: 1fr 1fr; } }
+
+    .dash-stat-card {
+      background: var(--white); border-radius: 16px; padding: 20px 22px;
+      box-shadow: 0 2px 10px rgba(30,38,64,.06); border: 1.5px solid var(--border);
+    }
+    .dash-stat-top { display: flex; align-items: flex-start; justify-content: space-between; }
+    .dash-stat-val { font-size: 2rem; font-weight: 900; color: var(--text); line-height: 1; }
+    .dash-stat-lbl { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 6px; }
+    .dash-change {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.75rem; font-weight: 700; padding: 3px 8px;
+      border-radius: 999px; flex-shrink: 0;
+    }
+    .dash-change.up   { background: #dcfce7; color: #16a34a; }
+    .dash-change.down { background: #fee2e2; color: #dc2626; }
+    .dash-change.flat { background: var(--bg); color: var(--muted); }
+    .dash-change-sub { font-size: 0.7rem; color: var(--muted); margin-top: 6px; }
+
+    .dash-breakdown-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .dash-breakdown-row { grid-template-columns: 1fr; } }
+
+    .dash-panel {
+      background: var(--white); border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(30,38,64,.06); border: 1.5px solid var(--border);
+      overflow: hidden;
+    }
+    .dash-panel-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+    }
+    .dash-breakdown-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; border-bottom: 1px solid var(--border);
+    }
+    .dash-breakdown-item:last-child { border-bottom: none; }
+    .dash-breakdown-name { flex: 1; font-size: 0.82rem; font-weight: 600; color: var(--text); }
+    .dash-breakdown-bar-wrap { width: 80px; height: 5px; background: var(--bg); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+    .dash-breakdown-bar { height: 100%; background: var(--navy); border-radius: 999px; }
+    .dash-breakdown-count { font-size: 0.82rem; font-weight: 800; color: var(--text); min-width: 28px; text-align: right; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -518,6 +587,7 @@
   <div class="nav-section">
     <div class="nav-item active" id="nav-leaderboard" onclick="switchView('leaderboard')"><span class="nav-icon">🏆</span> Leaderboard</div>
     <div class="nav-item" id="nav-sales" onclick="switchView('sales')"><span class="nav-icon">💼</span> Sales</div>
+    <div class="nav-item" id="nav-dashboard" onclick="switchView('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
   </div>
 
   <div class="sidebar-footer">
@@ -576,6 +646,58 @@
       <div class="sales-count" id="sales-count"></div>
     </div>
     <div class="sales-list" id="sales-grid"></div>
+  </div>
+
+  <!-- Dashboard View -->
+  <div id="view-dashboard" style="display:none;" class="dash-wrap">
+    <div class="dash-range-bar">
+      <span class="dash-range-label">Period</span>
+      <button class="dash-preset active" id="dash-preset-week" onclick="setDashPreset('week')">This Week</button>
+      <button class="dash-preset" id="dash-preset-month" onclick="setDashPreset('month')">This Month</button>
+      <button class="dash-preset" id="dash-preset-year" onclick="setDashPreset('year')">This Year</button>
+      <div class="dash-date-inputs">
+        <input type="date" id="dash-from" />
+        <span style="color:var(--muted);font-size:0.8rem">→</span>
+        <input type="date" id="dash-to" />
+        <button class="dash-apply" onclick="applyDashRange()">Apply</button>
+      </div>
+      <span class="dash-compare-label" id="dash-compare-label"></span>
+    </div>
+
+    <div class="dash-stat-row">
+      <div class="dash-stat-card">
+        <div class="dash-stat-top">
+          <div><div class="dash-stat-val" id="dash-deals">—</div><div class="dash-stat-lbl">Total Deals</div></div>
+          <div id="dash-deals-change"></div>
+        </div>
+        <div class="dash-change-sub" id="dash-deals-sub"></div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-top">
+          <div><div class="dash-stat-val" id="dash-premium">—</div><div class="dash-stat-lbl">Total Premium</div></div>
+          <div id="dash-premium-change"></div>
+        </div>
+        <div class="dash-change-sub" id="dash-premium-sub"></div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-top">
+          <div><div class="dash-stat-val" id="dash-avg">—</div><div class="dash-stat-lbl">Avg Premium</div></div>
+          <div id="dash-avg-change"></div>
+        </div>
+        <div class="dash-change-sub" id="dash-avg-sub"></div>
+      </div>
+    </div>
+
+    <div class="dash-breakdown-row">
+      <div class="dash-panel">
+        <div class="dash-panel-header">Policy Type Breakdown</div>
+        <div id="dash-policy"></div>
+      </div>
+      <div class="dash-panel">
+        <div class="dash-panel-header">Carrier Breakdown</div>
+        <div id="dash-carrier"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Content -->
@@ -677,6 +799,16 @@ function parseMoney(raw) {
 function todayStr()   { return new Date().toISOString().slice(0,10); }
 function weekStart()  { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
 function monthStart() { return new Date().toISOString().slice(0,8)+'01'; }
+
+// Convert a UTC timestamp (from Slack/Sheets) to the correct Eastern calendar date.
+function toESTDate(tsStr) {
+  if (!tsStr) return '';
+  let t = new Date(tsStr.trim());
+  if (isNaN(t)) return '';
+  if (t.getTime() > Date.now() + 43200000) t = new Date(tsStr.trim() + ' UTC');
+  if (isNaN(t)) return '';
+  return t.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
 
 // Normalize any date string to YYYY-MM-DD
 function normalizeDate(raw) {
@@ -1109,16 +1241,131 @@ setInterval(fetchData, 60_000);
 
 // ── View switching ─────────────────────────────────────────────────────────
 function switchView(view) {
-  const isLeaderboard = view === 'leaderboard';
-  document.getElementById('view-leaderboard').style.display = isLeaderboard ? 'grid' : 'none';
-  document.getElementById('view-sales').style.display       = isLeaderboard ? 'none' : 'flex';
-  document.getElementById('nav-leaderboard').classList.toggle('active', isLeaderboard);
-  document.getElementById('nav-sales').classList.toggle('active', !isLeaderboard);
-  document.querySelector('.topbar-title').innerHTML = isLeaderboard
-    ? '<span class="topbar-title-icon">🛡</span> Leaderboard for'
-    : '<span class="topbar-title-icon">💼</span> Sales';
-  document.getElementById('period-btn').style.display = isLeaderboard ? '' : 'none';
-  if (!isLeaderboard) renderSales(allRows);
+  document.getElementById('view-leaderboard').style.display = view === 'leaderboard' ? 'grid'  : 'none';
+  document.getElementById('view-sales').style.display       = view === 'sales'       ? 'flex'  : 'none';
+  document.getElementById('view-dashboard').style.display   = view === 'dashboard'   ? 'flex'  : 'none';
+  ['leaderboard','sales','dashboard'].forEach(v =>
+    document.getElementById('nav-'+v).classList.toggle('active', v === view));
+  const titles = {
+    leaderboard: '<span class="topbar-title-icon">🛡</span> Leaderboard for',
+    sales:       '<span class="topbar-title-icon">💼</span> Sales',
+    dashboard:   '<span class="topbar-title-icon">📊</span> Dashboard',
+  };
+  document.querySelector('.topbar-title').innerHTML = titles[view];
+  document.getElementById('period-btn').style.display       = view === 'leaderboard' ? '' : 'none';
+  document.getElementById('leaderboard-chips').style.display= view === 'leaderboard' ? '' : 'none';
+  if (view === 'sales')     renderSales(allRows);
+  if (view === 'dashboard') renderDashboard(allRows);
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+let dashFrom = weekStart();
+let dashTo   = todayStr();
+let dashPreset = 'week';
+
+function setDashPreset(preset) {
+  dashPreset = preset;
+  ['week','month','year'].forEach(p =>
+    document.getElementById('dash-preset-'+p).classList.toggle('active', p === preset));
+  const today = todayStr();
+  if (preset === 'week')  { dashFrom = weekStart();  dashTo = today; }
+  if (preset === 'month') { dashFrom = monthStart(); dashTo = today; }
+  if (preset === 'year')  { dashFrom = yearStart();  dashTo = today; }
+  document.getElementById('dash-from').value = dashFrom;
+  document.getElementById('dash-to').value   = dashTo;
+  renderDashboard(allRows);
+}
+
+function applyDashRange() {
+  const f = document.getElementById('dash-from').value;
+  const t = document.getElementById('dash-to').value;
+  if (!f || !t) return;
+  dashFrom = f <= t ? f : t;
+  dashTo   = f <= t ? t : f;
+  dashPreset = '';
+  ['week','month','year'].forEach(p =>
+    document.getElementById('dash-preset-'+p).classList.remove('active'));
+  renderDashboard(allRows);
+}
+
+function aggregateDash(rows, from, to) {
+  if (!rows.length) return { deals: 0, premium: 0, policyCount: {}, carrierCount: {} };
+  const keys       = Object.keys(rows[0]);
+  const dateKey    = keys.find(k=>k==='date_only') || keys.find(k=>k==='date') || keys[1];
+  const premiumKey = keys.find(k=>k==='total_premium') || keys.find(k=>/premium|amount/i.test(k)) || keys[2];
+  const policyKey  = keys.find(k=>k==='policy_type') || '';
+  const carrierKey = keys.find(k=>/carrier/i.test(k)) || (keys.length > 9 ? keys[9] : '');
+  const tsKey      = keys.find(k=>k==='timestamp') || '';
+
+  let deals = 0, premium = 0;
+  const policyCount = {}, carrierCount = {};
+
+  rows.forEach(row => {
+    const ts   = tsKey ? (row[tsKey]||'') : '';
+    const date = (ts ? toESTDate(ts) : '') || normalizeDate(row[dateKey]);
+    if (!date || date < from || date > to) return;
+    deals++;
+    premium += parseMoney(row[premiumKey]);
+    if (policyKey)  { const v=(row[policyKey]||'').trim();  if(v) policyCount[v]  = (policyCount[v]||0)+1;  }
+    if (carrierKey) { const v=(row[carrierKey]||'').trim(); if(v) carrierCount[v] = (carrierCount[v]||0)+1; }
+  });
+  return { deals, premium, policyCount, carrierCount };
+}
+
+function prevRange(from, to) {
+  const days  = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
+  const pTo   = new Date(from); pTo.setDate(pTo.getDate() - 1);
+  const pFrom = new Date(pTo);  pFrom.setDate(pFrom.getDate() - days + 1);
+  return [pFrom.toISOString().slice(0,10), pTo.toISOString().slice(0,10)];
+}
+
+function changeBadge(curr, prev, id, subId, label) {
+  const el = document.getElementById(id);
+  const sub = document.getElementById(subId);
+  if (!prev || prev === 0) { el.innerHTML = ''; sub.textContent = ''; return; }
+  const pct = ((curr - prev) / prev * 100);
+  const cls = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  const arrow = pct > 0 ? '↑' : pct < 0 ? '↓' : '→';
+  el.innerHTML = `<div class="dash-change ${cls}">${arrow} ${Math.abs(pct).toFixed(1)}%</div>`;
+  sub.textContent = `vs ${label}: ${typeof prev === 'number' && prev >= 1000 ? fmtMoney(prev) : prev}`;
+}
+
+function renderBreakdown(elId, countObj) {
+  const el = document.getElementById(elId);
+  const entries = Object.entries(countObj).sort((a,b)=>b[1]-a[1]);
+  if (!entries.length) { el.innerHTML = `<div class="empty" style="padding:20px"><div class="empty-title">No data</div></div>`; return; }
+  const max = entries[0][1];
+  el.innerHTML = entries.map(([name, count]) => `
+    <div class="dash-breakdown-item">
+      <div class="dash-breakdown-name">${name}</div>
+      <div class="dash-breakdown-bar-wrap"><div class="dash-breakdown-bar" style="width:${Math.round(count/max*100)}%"></div></div>
+      <div class="dash-breakdown-count">${count}</div>
+    </div>`).join('');
+}
+
+function renderDashboard(rows) {
+  document.getElementById('dash-from').value = dashFrom;
+  document.getElementById('dash-to').value   = dashTo;
+
+  const curr = aggregateDash(rows, dashFrom, dashTo);
+  const [pFrom, pTo] = prevRange(dashFrom, dashTo);
+  const prev = aggregateDash(rows, pFrom, pTo);
+
+  const prevLabel = `prev period (${pFrom} → ${pTo})`;
+  document.getElementById('dash-compare-label').textContent = `Comparing vs ${pFrom} → ${pTo}`;
+
+  document.getElementById('dash-deals').textContent   = curr.deals.toLocaleString();
+  document.getElementById('dash-premium').textContent = fmtMoney(curr.premium);
+  document.getElementById('dash-avg').textContent     = curr.deals ? fmtMoney(curr.premium / curr.deals) : '$0';
+
+  changeBadge(curr.deals,   prev.deals,   'dash-deals-change',   'dash-deals-sub',   prevLabel);
+  changeBadge(curr.premium, prev.premium, 'dash-premium-change', 'dash-premium-sub', prevLabel);
+  const currAvg = curr.deals ? curr.premium/curr.deals : 0;
+  const prevAvg = prev.deals ? prev.premium/prev.deals : 0;
+  changeBadge(currAvg, prevAvg, 'dash-avg-change', 'dash-avg-sub', prevLabel);
+
+  renderBreakdown('dash-policy',  curr.policyCount);
+  renderBreakdown('dash-carrier', curr.carrierCount);
 }
 
 // ── Sales rendering ────────────────────────────────────────────────────────
