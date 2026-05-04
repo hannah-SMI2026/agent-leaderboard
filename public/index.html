@@ -90,7 +90,7 @@
     .nav-item:hover { background: var(--navy2); color: #b8c4e0; }
     .nav-item.active { background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06)); color: #fff; font-weight: 600; border-left: 3px solid var(--red); padding-left: 9px; }
     .nav-item.active .nav-icon { color: var(--red); }
-    .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+    .nav-icon { width: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
     .sidebar-footer {
       margin-top: auto;
@@ -208,10 +208,7 @@
     .podium-card.rank-2 { order: 0; margin-bottom: 8px;  flex: 1;    background: linear-gradient(160deg, #fff1f2 0%, #fff 60%); border-top: 3px solid var(--red); }
     .podium-card.rank-3 { order: 2; margin-bottom: 0;    flex: 1;    background: linear-gradient(160deg, #eff6ff 0%, #fff 60%); border-top: 3px solid var(--blue); }
 
-    .podium-medal {
-      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-      font-size: 1.3rem;
-    }
+    .podium-medal { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); line-height: 0; }
     .podium-avatar {
       width: 56px; height: 56px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -223,7 +220,7 @@
     .podium-card.rank-2 .podium-avatar { width: 60px; height: 60px; }
     .podium-card.rank-3 .podium-avatar { width: 54px; height: 54px; }
 
-    .podium-crown { font-size: 1.8rem; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 2px 4px rgba(245,158,11,0.5)); }
+    .podium-crown { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 2px 4px rgba(245,158,11,0.5)); line-height:0; }
 
     .podium-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
     .podium-card.rank-1 .podium-name { font-size: 1.05rem; font-weight: 800; }
@@ -628,8 +625,8 @@
     .dash-podium-card.dp-1 { order:1; margin-bottom:28px; background:linear-gradient(160deg,#fffbeb 0%,#fff 60%); border-top:3px solid var(--gold); }
     .dash-podium-card.dp-2 { order:0; margin-bottom:10px; background:linear-gradient(160deg,#f8faff 0%,#fff 60%); border-top:3px solid #94a3b8; }
     .dash-podium-card.dp-3 { order:2; margin-bottom:0;   background:linear-gradient(160deg,#fff8f3 0%,#fff 60%); border-top:3px solid #cd7c2b; }
-    .dash-podium-crown { font-size:1.5rem; position:absolute; top:-20px; left:50%; transform:translateX(-50%); filter:drop-shadow(0 2px 4px rgba(245,158,11,0.5)); }
-    .dash-podium-medal { font-size:1rem; position:absolute; top:-14px; left:50%; transform:translateX(-50%); }
+    .dash-podium-crown { position:absolute; top:-18px; left:50%; transform:translateX(-50%); filter:drop-shadow(0 2px 4px rgba(245,158,11,0.5)); line-height:0; }
+    .dash-podium-medal { position:absolute; top:-12px; left:50%; transform:translateX(-50%); line-height:0; }
     .dash-podium-avatar {
       border-radius:50%; display:flex; align-items:center; justify-content:center;
       font-weight:800; color:#fff; background:#94a3b8;
@@ -694,13 +691,13 @@
 
 
   <div class="nav-section">
-    <div class="nav-item" id="nav-dashboard" onclick="switchView('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
-    <div class="nav-item active" id="nav-leaderboard" onclick="switchView('leaderboard')"><span class="nav-icon">🏆</span> Leaderboard</div>
-    <div class="nav-item" id="nav-sales" onclick="switchView('sales')"><span class="nav-icon">💼</span> Sales</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard')"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="6" width="4" height="15"/><rect x="17" y="3" width="4" height="18"/></svg></span> Dashboard</div>
+    <div class="nav-item" id="nav-leaderboard" onclick="switchView('leaderboard')"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H4a2 2 0 000 4c0 3 2 6 8 6s8-3 8-6a2 2 0 000-4h-2"/><path d="M6 3h12v7a6 6 0 01-12 0V3z"/><path d="M8 21h8M12 17v4"/></svg></span> Leaderboard</div>
+    <div class="nav-item" id="nav-sales" onclick="switchView('sales')"><span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></span> Sales</div>
   </div>
 
   <div class="sidebar-footer">
-    <span class="sidebar-footer-icon">☰</span>
+    <span class="sidebar-footer-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span>
     <span class="sidebar-footer-text">More</span>
   </div>
 </aside>
@@ -711,14 +708,14 @@
   <div class="topbar">
     <div class="topbar-left">
       <div class="topbar-title">
-        <span class="topbar-title-icon">🛡</span>
-        Leaderboard for
+        <span class="topbar-title-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="6" width="4" height="15"/><rect x="17" y="3" width="4" height="18"/></svg></span>
+        Dashboard
       </div>
-      <div class="view-chips" id="leaderboard-chips">
+      <div class="view-chips" id="leaderboard-chips" style="display:none">
         <button class="chip active" id="chip-agent" onclick="switchLeaderboardMode('agent')">By Agent</button>
         <button class="chip" id="chip-team" onclick="switchLeaderboardMode('team')">By Team</button>
       </div>
-      <button class="period-pill" id="period-btn">
+      <button class="period-pill" id="period-btn" style="display:none">
         <span id="period-label">Today</span> ▾
         <select id="period-select" onchange="onPeriodChange(this.value)">
           <option value="today" selected>Today</option>
@@ -758,10 +755,11 @@
   </div>
 
   <!-- Dashboard View -->
-  <div id="view-dashboard" style="display:none;" class="dash-wrap">
+  <div id="view-dashboard" style="display:flex;" class="dash-wrap">
     <div class="dash-range-bar">
       <span class="dash-range-label">Period</span>
       <button class="dash-preset active" id="dash-preset-week" onclick="setDashPreset('week')">This Week</button>
+      <button class="dash-preset" id="dash-preset-lastweek" onclick="setDashPreset('lastweek')">Last Week</button>
       <button class="dash-preset" id="dash-preset-month" onclick="setDashPreset('month')">This Month</button>
       <button class="dash-preset" id="dash-preset-year" onclick="setDashPreset('year')">This Year</button>
       <div class="dash-date-inputs">
@@ -814,7 +812,7 @@
       <!-- Right: Top performers podium + team rankings -->
       <div class="dash-perf-panel">
         <div class="dash-podium-wrap" id="dash-podium-wrap">
-          <div class="dash-podium-title">🏆 Top Performers</div>
+          <div class="dash-podium-title" style="display:flex;align-items:center;gap:7px;justify-content:center">${IC.trophy} Top Performers</div>
           <div id="dash-top3-list"></div>
         </div>
         <div class="dash-teams-row" id="dash-teams-row"></div>
@@ -823,7 +821,7 @@
   </div>
 
   <!-- Content -->
-  <div id="view-leaderboard" class="content">
+  <div id="view-leaderboard" class="content" style="display:none">
 
     <!-- Left: podium + others -->
     <div class="podium-section">
@@ -890,6 +888,20 @@
 </div><!-- end .main -->
 
 <script>
+// ── SVG icon strings (no emojis) ───────────────────────────────────────────
+const IC = {
+  bars:     `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="6" width="4" height="15"/><rect x="17" y="3" width="4" height="18"/></svg>`,
+  trophy:   `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H4a2 2 0 000 4c0 3 2 6 8 6s8-3 8-6a2 2 0 000-4h-2"/><path d="M6 3h12v7a6 6 0 01-12 0V3z"/><path d="M8 21h8M12 17v4"/></svg>`,
+  briefcase:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>`,
+  menu:     `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`,
+  shield:   `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  crown:    `<svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><path d="M12 4L9 9 4 7l3 10h10l3-10-5 2-3-5zm-7 13h14v1.5H5V17z"/></svg>`,
+  people:   `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>`,
+  list:     `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="3" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="3" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>`,
+  medal: (n, bg) => `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${bg};color:#fff;font-size:0.62rem;font-weight:800;flex-shrink:0;line-height:1">${n}</span>`,
+};
+const MEDALS_BG = ['#f59e0b','#94a3b8','#cd7c2b'];
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 function colorFor(name) { return '#94a3b8'; }
 function initials(name) {
@@ -1121,11 +1133,11 @@ function renderAll(rows) {
   if (leaderboardMode === 'team') {
     renderTeamPodium(data.teams.slice(0,3));
     renderTeamOthers(data.teams);
-    document.querySelector('.others-title').textContent = '🏅 All Teams';
+    document.querySelector('.others-title').innerHTML = `${IC.list}&nbsp; All Teams`;
   } else {
     renderPodium(data.agents.slice(0,3), from, to);
     renderOthers(data.agents);
-    document.querySelector('.others-title').textContent = '🏅 All Rankings';
+    document.querySelector('.others-title').innerHTML = `${IC.list}&nbsp; All Rankings`;
   }
 
   // News
@@ -1144,7 +1156,6 @@ function agentSparkPoints(agent, from, to) {
 }
 
 const RANK_COLORS = ['#f59e0b','#ff4757','#3b6cf6'];
-const RANK_MEDAL  = ['🥇','🥈','🥉'];
 const RANK_BADGE  = ['badge-gray','badge-gray','badge-gray'];
 const RANK_TEXTS  = ['#1 Advisor','#2 Advisor','#3 Advisor'];
 
@@ -1153,7 +1164,7 @@ function renderPodium(agents, from, to) {
   if (!agents.length) {
     el.innerHTML = [1,2,3].map(i => `
       <div class="podium-card rank-${i}">
-        <div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No data</div></div>
+        <div class="empty"><div class="empty-title">No data</div></div>
       </div>`).join('');
     return;
   }
@@ -1163,8 +1174,8 @@ function renderPodium(agents, from, to) {
     const spark  = sparkline(pts, RANK_COLORS[i] || '#3b6cf6');
     const rankCls= `rank-${i+1}`;
     const medalEl = i === 0
-      ? `<div class="podium-crown">👑</div>`
-      : `<div class="podium-medal">${RANK_MEDAL[i]}</div>`;
+      ? `<div class="podium-crown">${IC.crown}</div>`
+      : `<div class="podium-medal">${IC.medal(i+1, MEDALS_BG[i])}</div>`;
     return `
       <div class="podium-card ${rankCls}">
         ${medalEl}
@@ -1182,14 +1193,14 @@ function renderPodium(agents, from, to) {
 function renderOthers(agents) {
   const el = document.getElementById('others-list');
   if (!agents.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">No data yet</div></div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-title">No data yet</div></div>`;
     return;
   }
   el.innerHTML = agents.map((agent, i) => {
     const rank  = i + 1;
     const color = colorFor(agent.name);
     const rankCls = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
-    const medal   = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    const medal   = rank <= 3 ? IC.medal(rank, MEDALS_BG[rank-1]) : rank;
     return `
       <div class="rank-row">
         <div class="rank-num ${rankCls}">${medal}</div>
@@ -1211,13 +1222,13 @@ function renderTeamPodium(teams) {
   if (!teams.length) {
     el.innerHTML = [1,2,3].map(i=>`
       <div class="podium-card rank-${i}">
-        <div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No team data</div></div>
+        <div class="empty"><div class="empty-title">No team data</div></div>
       </div>`).join('');
     return;
   }
   el.innerHTML = teams.map((team, i) => `
     <div class="podium-card rank-${i+1}">
-      <div class="podium-medal">${RANK_MEDAL[i]}</div>
+      <div class="podium-medal">${i===0?IC.crown:IC.medal(i+1,MEDALS_BG[i])}</div>
       <div class="podium-avatar" style="background:#94a3b8">${team.name.slice(0,2).toUpperCase()}</div>
       <div class="podium-name">${team.name}</div>
       <div class="podium-badge badge-gray">#${i+1} Team</div>
@@ -1230,12 +1241,12 @@ function renderTeamPodium(teams) {
 function renderTeamOthers(teams) {
   const el = document.getElementById('others-list');
   if (!teams.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">No team data</div></div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-title">No team data</div></div>`;
     return;
   }
   el.innerHTML = teams.map((team, i) => {
     const rank   = i + 1;
-    const medal  = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+    const medal  = rank <= 3 ? IC.medal(rank, MEDALS_BG[rank-1]) : rank;
     const rankCls= rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
     const agentRows = team.agents.map(a=>`
       <div class="team-agent-row">
@@ -1346,6 +1357,7 @@ async function fetchData() {
     hideError();
     allRows = parseCSV(csv);
     renderAll(allRows);
+    renderDashboard(allRows);
     document.getElementById('last-updated').textContent = 'Live · ' + new Date().toLocaleTimeString();
   } catch(e) { showError('Cannot reach server: ' + e.message); }
 }
@@ -1370,9 +1382,9 @@ function switchView(view) {
   ['leaderboard','sales','dashboard'].forEach(v =>
     document.getElementById('nav-'+v).classList.toggle('active', v === view));
   const titles = {
-    leaderboard: '<span class="topbar-title-icon">🛡</span> Leaderboard for',
-    sales:       '<span class="topbar-title-icon">💼</span> Sales',
-    dashboard:   '<span class="topbar-title-icon">📊</span> Dashboard',
+    leaderboard: `<span class="topbar-title-icon">${IC.shield}</span> Leaderboard for`,
+    sales:       `<span class="topbar-title-icon">${IC.briefcase}</span> Sales`,
+    dashboard:   `<span class="topbar-title-icon">${IC.bars}</span> Dashboard`,
   };
   document.querySelector('.topbar-title').innerHTML = titles[view];
   document.getElementById('period-btn').style.display       = view === 'leaderboard' ? '' : 'none';
@@ -1386,14 +1398,27 @@ let dashFrom = weekStart();
 let dashTo   = todayStr();
 let dashPreset = 'week';
 
+function lastWeekBounds() {
+  const today = new Date();
+  const day = today.getDay(); // 0=Sun
+  // This Monday
+  const thisMon = new Date(today);
+  thisMon.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+  // Last Mon = thisMon - 7, Last Sun = thisMon - 1
+  const lMon = new Date(thisMon); lMon.setDate(thisMon.getDate() - 7);
+  const lSun = new Date(thisMon); lSun.setDate(thisMon.getDate() - 1);
+  return [lMon.toISOString().slice(0,10), lSun.toISOString().slice(0,10)];
+}
+
 function setDashPreset(preset) {
   dashPreset = preset;
-  ['week','month','year'].forEach(p =>
-    document.getElementById('dash-preset-'+p).classList.toggle('active', p === preset));
+  ['week','lastweek','month','year'].forEach(p =>
+    document.getElementById('dash-preset-'+p)?.classList.toggle('active', p === preset));
   const today = todayStr();
-  if (preset === 'week')  { dashFrom = weekStart();  dashTo = today; }
-  if (preset === 'month') { dashFrom = monthStart(); dashTo = today; }
-  if (preset === 'year')  { dashFrom = yearStart();  dashTo = today; }
+  if (preset === 'week')     { dashFrom = weekStart();  dashTo = today; }
+  if (preset === 'lastweek') { [dashFrom, dashTo] = lastWeekBounds(); }
+  if (preset === 'month')    { dashFrom = monthStart(); dashTo = today; }
+  if (preset === 'year')     { dashFrom = yearStart();  dashTo = today; }
   document.getElementById('dash-from').value = dashFrom;
   document.getElementById('dash-to').value   = dashTo;
   renderDashboard(allRows);
@@ -1406,8 +1431,8 @@ function applyDashRange() {
   dashFrom = f <= t ? f : t;
   dashTo   = f <= t ? t : f;
   dashPreset = '';
-  ['week','month','year'].forEach(p =>
-    document.getElementById('dash-preset-'+p).classList.remove('active'));
+  ['week','lastweek','month','year'].forEach(p =>
+    document.getElementById('dash-preset-'+p)?.classList.remove('active'));
   renderDashboard(allRows);
 }
 
@@ -1520,16 +1545,32 @@ function heatColor(count, max) {
 // Force-parse as UTC regardless of local browser timezone.
 function parseUTCTimestamp(ts) {
   if (!ts) return null;
-  let s = ts.trim();
-  // "2026/05/04 20:34:12" or "2026-05-04 20:34:12"  →  ISO 8601 + Z
-  const m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s](\d{1,2}:\d{2}(?::\d{2})?)(\s*(AM|PM))?$/i);
+  const s = ts.trim();
+
+  // YYYY/MM/DD or YYYY-MM-DD with time (ISO-ish, year first)
+  let m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s](\d{1,2}:\d{2}(?::\d{2})?)/i);
   if (m) {
-    s = `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}T${m[4]}Z`;
-  } else if (!/Z$|[+\-]\d{2}:/.test(s)) {
-    // No timezone indicator — assume UTC
-    s = s.replace(' ', 'T') + 'Z';
+    const iso = `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}T${m[4]}Z`;
+    const t = new Date(iso);
+    return isNaN(t) ? null : t;
   }
-  const t = new Date(s);
+
+  // M/D/YYYY or MM/DD/YYYY with time (Google Sheets US format: "5/4/2026 21:34:12")
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[T\s](\d{1,2}:\d{2}(?::\d{2})?)/i);
+  if (m) {
+    const iso = `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}T${m[4]}Z`;
+    const t = new Date(iso);
+    return isNaN(t) ? null : t;
+  }
+
+  // Already has timezone (Z or ±HH:MM) — use as-is
+  if (/Z$|[+\-]\d{2}:\d{2}$/.test(s)) {
+    const t = new Date(s);
+    return isNaN(t) ? null : t;
+  }
+
+  // Last resort: append ' UTC'
+  const t = new Date(s + ' UTC');
   return isNaN(t) ? null : t;
 }
 
@@ -1644,8 +1685,8 @@ function renderDashTop3(agents) {
     const cls  = `dp-${rank}`;
     const inits = a.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const crown = rank === 1
-      ? `<div class="dash-podium-crown">👑</div>`
-      : `<div class="dash-podium-medal">${rank===2?'🥈':'🥉'}</div>`;
+      ? `<div class="dash-podium-crown">${IC.crown}</div>`
+      : `<div class="dash-podium-medal">${IC.medal(rank, MEDALS_BG[rank-1])}</div>`;
     return `
       <div class="dash-podium-card ${cls}">
         ${crown}
@@ -1667,7 +1708,7 @@ function renderDashTeams(teams) {
   }
   el.innerHTML = teams.map(team => `
     <div class="dash-team-col">
-      <div class="dash-team-head">👥 ${team.name} <span style="font-weight:400;opacity:.6">(${team.deals} deals)</span></div>
+      <div class="dash-team-head" style="display:flex;align-items:center;gap:5px">${IC.people} ${team.name} <span style="font-weight:400;opacity:.6;margin-left:3px">(${team.deals} deals)</span></div>
       <div class="dash-team-list">
         ${team.agents.map((a, i) => `
           <div class="dash-team-item">
@@ -1702,6 +1743,14 @@ function renderDashboard(rows) {
     pFrom = fmtYMD(prevMon.getFullYear(), prevMon.getMonth()+1, prevMon.getDate());
     pTo   = fmtYMD(prevSun.getFullYear(), prevSun.getMonth()+1, prevSun.getDate());
     prevLabel = 'last week';
+  } else if (dashPreset === 'lastweek') {
+    // prev = the week before last
+    const {y,m,d} = parseYMD(dashFrom);
+    const prevSun = new Date(y, m-1, d-1);
+    const prevMon = new Date(y, m-1, d-7);
+    pFrom = fmtYMD(prevMon.getFullYear(), prevMon.getMonth()+1, prevMon.getDate());
+    pTo   = fmtYMD(prevSun.getFullYear(), prevSun.getMonth()+1, prevSun.getDate());
+    prevLabel = 'week before';
   } else if (dashPreset === 'month') {
     // dashFrom = YYYY-MM-01; prev = full previous calendar month
     const {y,m} = parseYMD(dashFrom);
