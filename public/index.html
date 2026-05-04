@@ -1290,13 +1290,17 @@ function applyDashRange() {
 
 function normalizeCarrier(raw) {
   if (!raw) return '';
-  const s = raw.trim().toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  if (/amam|am\s*am|occidental|american\s*am/i.test(raw)) return 'American Amicable';
-  if (/baltimore|balt|b\.?\s*l\.?$/i.test(raw)) return 'Baltimore Life';
-  if (/\bcica\b|cica\s*life/i.test(raw)) return 'CICA';
+  // Strip to letters only for fuzzy matching
+  const clean = raw.toLowerCase().replace(/[^a-z]/g, '');
+  // American Amicable: amam, americanamicable, americaamericable, occidental, etc.
+  if (/a+m+a+m/.test(clean) || /occidental/i.test(raw) ||
+      /americ[a-z]*\s*am[ie][a-z]*/i.test(raw)) return 'American Amicable';
+  if (/baltimore|balt/i.test(raw) || clean === 'bl') return 'Baltimore Life';
+  if (/cic[ai]/i.test(raw)) return 'CICA';
   if (/corebridge|aig/i.test(raw)) return 'Corebridge';
   if (/guarantee|gtl/i.test(raw)) return 'Guarantee Trust Life';
   if (/trans\s*am/i.test(raw)) return 'TransAmerica';
+  if (/mutual.*omaha|omaha.*mutual/i.test(raw)) return 'Mutual of Omaha';
   return raw.trim();
 }
 
