@@ -1319,15 +1319,19 @@ function prevRange(from, to) {
   return [pFrom.toISOString().slice(0,10), pTo.toISOString().slice(0,10)];
 }
 
-function changeBadge(curr, prev, id, subId, label) {
-  const el = document.getElementById(id);
+function changeBadge(curr, prev, id, subId, label, prevDisplay) {
+  const el  = document.getElementById(id);
   const sub = document.getElementById(subId);
-  if (!prev || prev === 0) { el.innerHTML = ''; sub.textContent = ''; return; }
-  const pct = ((curr - prev) / prev * 100);
-  const cls = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  if (!prev || prev === 0) {
+    el.innerHTML = `<div class="dash-change flat">— no data</div>`;
+    sub.textContent = `${label}: no data`;
+    return;
+  }
+  const pct   = ((curr - prev) / prev * 100);
+  const cls   = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
   const arrow = pct > 0 ? '↑' : pct < 0 ? '↓' : '→';
   el.innerHTML = `<div class="dash-change ${cls}">${arrow} ${Math.abs(pct).toFixed(1)}%</div>`;
-  sub.textContent = `vs ${label}: ${typeof prev === 'number' && prev >= 1000 ? fmtMoney(prev) : prev}`;
+  sub.textContent = `${label}: ${prevDisplay}`;
 }
 
 function renderBreakdown(elId, countObj) {
@@ -1348,21 +1352,44 @@ function renderDashboard(rows) {
   document.getElementById('dash-to').value   = dashTo;
 
   const curr = aggregateDash(rows, dashFrom, dashTo);
-  const [pFrom, pTo] = prevRange(dashFrom, dashTo);
-  const prev = aggregateDash(rows, pFrom, pTo);
 
-  const prevLabel = `prev period (${pFrom} → ${pTo})`;
-  document.getElementById('dash-compare-label').textContent = `Comparing vs ${pFrom} → ${pTo}`;
+  // Smart previous period: for presets use natural calendar period before, not same-length slice
+  let pFrom, pTo, prevLabel;
+  if (dashPreset === 'week') {
+    // Last full Mon–Sun week
+    const mon = new Date(dashFrom);
+    const sun = new Date(mon); sun.setDate(mon.getDate() - 1);
+    const prevMon = new Date(sun); prevMon.setDate(sun.getDate() - 6);
+    pFrom = prevMon.toISOString().slice(0,10);
+    pTo   = sun.toISOString().slice(0,10);
+    prevLabel = 'last week';
+  } else if (dashPreset === 'month') {
+    const d = new Date(dashFrom);
+    d.setMonth(d.getMonth() - 1);
+    pFrom = d.toISOString().slice(0,8) + '01';
+    pTo   = new Date(d.getFullYear(), d.getMonth()+1, 0).toISOString().slice(0,10);
+    prevLabel = 'last month';
+  } else if (dashPreset === 'year') {
+    const y = new Date().getFullYear() - 1;
+    pFrom = y + '-01-01'; pTo = y + '-12-31';
+    prevLabel = 'last year';
+  } else {
+    [pFrom, pTo] = prevRange(dashFrom, dashTo);
+    prevLabel = `${pFrom} → ${pTo}`;
+  }
+
+  const prev = aggregateDash(rows, pFrom, pTo);
+  document.getElementById('dash-compare-label').textContent = `vs ${prevLabel} (${pFrom} → ${pTo})`;
 
   document.getElementById('dash-deals').textContent   = curr.deals.toLocaleString();
   document.getElementById('dash-premium').textContent = fmtMoney(curr.premium);
   document.getElementById('dash-avg').textContent     = curr.deals ? fmtMoney(curr.premium / curr.deals) : '$0';
 
-  changeBadge(curr.deals,   prev.deals,   'dash-deals-change',   'dash-deals-sub',   prevLabel);
-  changeBadge(curr.premium, prev.premium, 'dash-premium-change', 'dash-premium-sub', prevLabel);
+  changeBadge(curr.deals,   prev.deals,   'dash-deals-change',   'dash-deals-sub',   prevLabel, prev.deals);
+  changeBadge(curr.premium, prev.premium, 'dash-premium-change', 'dash-premium-sub', prevLabel, fmtMoney(prev.premium));
   const currAvg = curr.deals ? curr.premium/curr.deals : 0;
   const prevAvg = prev.deals ? prev.premium/prev.deals : 0;
-  changeBadge(currAvg, prevAvg, 'dash-avg-change', 'dash-avg-sub', prevLabel);
+  changeBadge(currAvg, prevAvg, 'dash-avg-change', 'dash-avg-sub', prevLabel, fmtMoney(prevAvg));
 
   renderBreakdown('dash-policy',  curr.policyCount);
   renderBreakdown('dash-carrier', curr.carrierCount);
