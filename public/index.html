@@ -850,13 +850,11 @@ function todayStr()   { return new Date().toISOString().slice(0,10); }
 function weekStart()  { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
 function monthStart() { return new Date().toISOString().slice(0,8)+'01'; }
 
-// Convert a UTC timestamp (from Slack/Sheets) to the correct Eastern calendar date.
+// Convert a UTC timestamp (from Slack/Sheets column U) to Eastern calendar date.
 function toESTDate(tsStr) {
   if (!tsStr) return '';
-  let t = new Date(tsStr.trim());
-  if (isNaN(t)) return '';
-  if (t.getTime() > Date.now() + 43200000) t = new Date(tsStr.trim() + ' UTC');
-  if (isNaN(t)) return '';
+  const t = parseUTCTimestamp(tsStr);
+  if (!t) return '';
   return t.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
@@ -1419,26 +1417,46 @@ function heatColor(count, max) {
   return HEATMAP_COLORS[5];
 }
 
+// Column U is always UTC (Slack workflow timestamp).
+// Force-parse as UTC regardless of local browser timezone.
+function parseUTCTimestamp(ts) {
+  if (!ts) return null;
+  let s = ts.trim();
+  // "2026/05/04 20:34:12" or "2026-05-04 20:34:12"  →  ISO 8601 + Z
+  const m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s](\d{1,2}:\d{2}(?::\d{2})?)(\s*(AM|PM))?$/i);
+  if (m) {
+    s = `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}T${m[4]}Z`;
+  } else if (!/Z$|[+\-]\d{2}:/.test(s)) {
+    // No timezone indicator — assume UTC
+    s = s.replace(' ', 'T') + 'Z';
+  }
+  const t = new Date(s);
+  return isNaN(t) ? null : t;
+}
+
 function buildHeatmap(rows, from, to) {
   // grid[day0..6][hour0..23]
   const grid = Array.from({length:7}, () => Array(24).fill(0));
   if (!rows.length) return grid;
   const keys    = Object.keys(rows[0]);
-  const tsKey   = keys.find(k=>k==='timestamp') || '';
+
+  // Column U = index 20 (0-based). Try header name first, then fall back to position.
+  const tsKey = keys.find(k => /^(timestamp|submitted_at|created_at|submission_time|submit_time|date_time)$/.test(k))
+              || keys[20] || '';
   const dateKey = keys.find(k=>k==='date_only') || keys[1];
 
   rows.forEach(row => {
-    const ts   = tsKey ? (row[tsKey]||'') : '';
-    const date = (ts ? toESTDate(ts) : '') || normalizeDate(row[dateKey]);
+    // Use date_only (col AA, already EST-correct) for the date range filter
+    const date = normalizeDate(row[dateKey]);
     if (!date || date < from || date > to) return;
-    if (!ts) return;
 
-    let t = new Date(ts.trim());
-    if (isNaN(t)) return;
-    if (t.getTime() > Date.now() + 43200000) t = new Date(ts.trim() + ' UTC');
-    if (isNaN(t)) return;
+    const tsRaw = tsKey ? (row[tsKey]||'').trim() : '';
+    if (!tsRaw) return;
 
-    // Get day-of-week and hour in Eastern time using Intl
+    // Always parse column U as UTC, then convert to EST for day/hour bucketing
+    const t = parseUTCTimestamp(tsRaw);
+    if (!t) return;
+
     try {
       const parts = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/New_York',
