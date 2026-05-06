@@ -940,9 +940,21 @@ function parseMoney(raw) {
   }
   return parseFloat(s) || 0;
 }
-function todayStr()   { return new Date().toISOString().slice(0,10); }
-function weekStart()  { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); }
-function monthStart() { return new Date().toISOString().slice(0,8)+'01'; }
+// All date helpers produce EST dates (consistent with date_only column in the sheet)
+function estDateStr(d) {
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // → YYYY-MM-DD
+}
+function todayStr() { return estDateStr(new Date()); }
+function weekStart() {
+  const d   = new Date();
+  const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(
+    d.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short' })
+  );
+  const daysBack = dow === 0 ? 6 : dow - 1; // days since last Monday in EST
+  return estDateStr(new Date(d.getTime() - daysBack * 864e5));
+}
+function monthStart() { return todayStr().slice(0,7) + '-01'; }
+function yearStart()  { return todayStr().slice(0,4) + '-01-01'; }
 
 // Convert a UTC timestamp (from Slack/Sheets column U) to Eastern calendar date.
 function toESTDate(tsStr) {
@@ -1018,15 +1030,15 @@ function aggregate(rows, from, to) {
   const dateKey    = keys.find(k=>k==='date_only')      || keys.find(k=>k==='date') || keys[1];
   const premiumKey = keys.find(k=>k==='total_premium') || keys.find(k=>/premium|amount|price|value/i.test(k)) || keys[2];
 
-  // Debug: log first row's raw date and detected key
-  if (rows[0]) console.log('[DEBUG] dateKey:', dateKey, '| raw date:', rows[0][dateKey], '| normalized:', normalizeDate(rows[0][dateKey]), '| from:', from, '| to:', to);
-
   const map={}, byDate={}, policyCount={}, teamMap={}; let totalDeals=0, totalPremium=0;
   const policyKey = keys.find(k=>k==='policy_type') || '';
-  const teamKey   = keys.find(k=>k==='team'||/team/i.test(k)) || (keys.length > 26 ? keys[26] : '');
+  const teamKey   = keys.find(k=>k==='team'||/\bteam\b/i.test(k)) || '';
+  const tsKey2    = keys.find(k=>k==='timestamp') || keys[20] || '';
 
   rows.forEach(row => {
-    const date=normalizeDate(row[dateKey]);
+    // date_only (col AA) first; fall back to deriving from UTC timestamp (col U)
+    let date = normalizeDate(row[dateKey]);
+    if (!date && tsKey2) date = toESTDate(row[tsKey2] || '');
     if (!date||date<from||date>to) return;
     const name=cleanName(row[nameKey]); if (!name) return;
     const premium=parseMoney(row[premiumKey]);
@@ -1409,15 +1421,15 @@ let dashTo   = todayStr();
 let dashPreset = 'week';
 
 function lastWeekBounds() {
-  const today = new Date();
-  const day = today.getDay(); // 0=Sun
-  // This Monday
-  const thisMon = new Date(today);
-  thisMon.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
-  // Last Mon = thisMon - 7, Last Sun = thisMon - 1
-  const lMon = new Date(thisMon); lMon.setDate(thisMon.getDate() - 7);
-  const lSun = new Date(thisMon); lSun.setDate(thisMon.getDate() - 1);
-  return [lMon.toISOString().slice(0,10), lSun.toISOString().slice(0,10)];
+  const d   = new Date();
+  const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(
+    d.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short' })
+  );
+  const daysToThisMon = dow === 0 ? 6 : dow - 1;
+  return [
+    estDateStr(new Date(d.getTime() - (daysToThisMon + 7) * 864e5)), // last Mon
+    estDateStr(new Date(d.getTime() - (daysToThisMon + 1) * 864e5)), // last Sun
+  ];
 }
 
 function setDashPreset(preset) {
@@ -1470,13 +1482,15 @@ function aggregateDash(rows, from, to) {
   const nameKey    = keys.find(k=>k==='submitted_by') || keys.find(k=>/name/i.test(k)) || keys[0];
   const policyKey  = keys.find(k=>k==='policy_type') || '';
   const carrierKey = keys.find(k=>/carrier/i.test(k)) || (keys.length > 9 ? keys[9] : '');
-  const teamKey    = keys.find(k=>k==='team'||/\bteam\b/i.test(k)) || (keys.length > 26 ? keys[26] : '');
+  const teamKey    = keys.find(k=>k==='team'||/\bteam\b/i.test(k)) || '';
+  const tsKeyD     = keys.find(k=>k==='timestamp') || keys[20] || '';
 
   let deals = 0, premium = 0;
   const policyCount = {}, carrierCount = {}, agentMap = {}, teamMap = {};
 
   rows.forEach(row => {
-    const date = normalizeDate(row[dateKey]);
+    let date = normalizeDate(row[dateKey]);
+    if (!date && tsKeyD) date = toESTDate(row[tsKeyD] || '');
     if (!date || date < from || date > to) return;
     deals++;
     const prem = parseMoney(row[premiumKey]);
