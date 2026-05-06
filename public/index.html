@@ -967,7 +967,7 @@ function weekStart() {
   const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(
     d.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short' })
   );
-  const daysBack = dow === 0 ? 6 : dow - 1; // days since last Monday in EST
+  const daysBack = (dow + 2) % 7; // days since last Friday in EST
   return estDateStr(new Date(d.getTime() - daysBack * 864e5));
 }
 function monthStart() { return todayStr().slice(0,7) + '-01'; }
@@ -1464,10 +1464,10 @@ function lastWeekBounds() {
   const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(
     d.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short' })
   );
-  const daysToThisMon = dow === 0 ? 6 : dow - 1;
+  const daysToThisFri = (dow + 2) % 7; // days since this week's Friday
   return [
-    estDateStr(new Date(d.getTime() - (daysToThisMon + 7) * 864e5)), // last Mon
-    estDateStr(new Date(d.getTime() - (daysToThisMon + 1) * 864e5)), // last Sun
+    estDateStr(new Date(d.getTime() - (daysToThisFri + 7) * 864e5)), // last Fri
+    estDateStr(new Date(d.getTime() - (daysToThisFri + 1) * 864e5)), // last Thu
   ];
 }
 
