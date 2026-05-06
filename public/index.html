@@ -1053,12 +1053,23 @@ function aggregate(rows, from, to) {
   // Column U = timestamp (UTC from Slack) — primary date source, EST-converted
   const tsKey2    = keys.find(k=>k==='timestamp') || keys[20] || '';
 
+  // Dedup: skip rows where agent+timestamp combo has already been seen
+  const seenKeys = new Set();
+
   rows.forEach(row => {
     // Primary: UTC timestamp → EST date. Fallback: date_only column.
     let date = tsKey2 ? toESTDate(row[tsKey2] || '') : '';
     if (!date) date = normalizeDate(row[dateKey]);
-    if (!date||date<from||date>to) return;
     const name=cleanName(row[nameKey]); if (!name) return;
+
+    // Duplicate detection: same agent + same raw timestamp = duplicate submission
+    const rawTs = tsKey2 ? (row[tsKey2] || '').trim() : '';
+    if (rawTs) {
+      const dedupKey = name + '||' + rawTs;
+      if (seenKeys.has(dedupKey)) return; // skip duplicate
+      seenKeys.add(dedupKey);
+    }
+    if (!date||date<from||date>to) return;
     const premium=parseMoney(row[premiumKey]);
 
     if (!map[name]) map[name]={ name, deals:0, premium:0, dailyDeals:{}, dealDates:[] };
@@ -1516,12 +1527,23 @@ function aggregateDash(rows, from, to) {
 
   let deals = 0, premium = 0;
   const policyCount = {}, carrierCount = {}, agentMap = {}, teamMap = {};
+  const seenKeysD = new Set();
 
   rows.forEach(row => {
     // Primary: UTC timestamp → EST date. Fallback: date_only column.
     let date = tsKeyD ? toESTDate(row[tsKeyD] || '') : '';
     if (!date) date = normalizeDate(row[dateKey]);
     if (!date || date < from || date > to) return;
+
+    // Duplicate detection: same agent + same raw timestamp = duplicate submission
+    const rawTsD  = tsKeyD ? (row[tsKeyD] || '').trim() : '';
+    const nameD   = cleanName(row[nameKey]);
+    if (rawTsD && nameD) {
+      const dk = nameD + '||' + rawTsD;
+      if (seenKeysD.has(dk)) return;
+      seenKeysD.add(dk);
+    }
+
     deals++;
     const prem = parseMoney(row[premiumKey]);
     premium += prem;
