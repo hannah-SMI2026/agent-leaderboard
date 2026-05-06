@@ -1033,12 +1033,13 @@ function aggregate(rows, from, to) {
   const map={}, byDate={}, policyCount={}, teamMap={}; let totalDeals=0, totalPremium=0;
   const policyKey = keys.find(k=>k==='policy_type') || '';
   const teamKey   = keys.find(k=>k==='team'||/\bteam\b/i.test(k)) || '';
+  // Column U = timestamp (UTC from Slack) — primary date source, EST-converted
   const tsKey2    = keys.find(k=>k==='timestamp') || keys[20] || '';
 
   rows.forEach(row => {
-    // date_only (col AA) first; fall back to deriving from UTC timestamp (col U)
-    let date = normalizeDate(row[dateKey]);
-    if (!date && tsKey2) date = toESTDate(row[tsKey2] || '');
+    // Primary: UTC timestamp → EST date. Fallback: date_only column.
+    let date = tsKey2 ? toESTDate(row[tsKey2] || '') : '';
+    if (!date) date = normalizeDate(row[dateKey]);
     if (!date||date<from||date>to) return;
     const name=cleanName(row[nameKey]); if (!name) return;
     const premium=parseMoney(row[premiumKey]);
@@ -1483,14 +1484,16 @@ function aggregateDash(rows, from, to) {
   const policyKey  = keys.find(k=>k==='policy_type') || '';
   const carrierKey = keys.find(k=>/carrier/i.test(k)) || (keys.length > 9 ? keys[9] : '');
   const teamKey    = keys.find(k=>k==='team'||/\bteam\b/i.test(k)) || '';
+  // Column U = timestamp (UTC from Slack) — primary date source, EST-converted
   const tsKeyD     = keys.find(k=>k==='timestamp') || keys[20] || '';
 
   let deals = 0, premium = 0;
   const policyCount = {}, carrierCount = {}, agentMap = {}, teamMap = {};
 
   rows.forEach(row => {
-    let date = normalizeDate(row[dateKey]);
-    if (!date && tsKeyD) date = toESTDate(row[tsKeyD] || '');
+    // Primary: UTC timestamp → EST date. Fallback: date_only column.
+    let date = tsKeyD ? toESTDate(row[tsKeyD] || '') : '';
+    if (!date) date = normalizeDate(row[dateKey]);
     if (!date || date < from || date > to) return;
     deals++;
     const prem = parseMoney(row[premiumKey]);
@@ -1567,33 +1570,54 @@ function heatColor(count, max) {
 
 // Column U is always UTC (Slack workflow timestamp).
 // Force-parse as UTC regardless of local browser timezone.
+// Month-name lookup for long-date parsing
+const MONTH_IDX = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+
+// Parse any timestamp from column U as UTC, return a Date object.
+// Handles all formats Google Sheets / Slack produce:
+//   "May 5, 2026, 11:24:00 PM"     ← Google Sheets long format (UTC)
+//   "2026/05/05 23:24:00"           ← ISO-ish
+//   "5/5/2026 23:24:00"             ← US slash format
+//   "2026-05-05T23:24:00Z"          ← already ISO UTC
 function parseUTCTimestamp(ts) {
   if (!ts) return null;
   const s = ts.trim();
 
-  // YYYY/MM/DD or YYYY-MM-DD with time (ISO-ish, year first)
-  let m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s](\d{1,2}:\d{2}(?::\d{2})?)/i);
+  // "May 5, 2026, 11:24:00 PM"  or  "May 5, 2026 11:24:00 PM"
+  let m = s.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4}),?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
   if (m) {
-    const iso = `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}T${m[4]}Z`;
-    const t = new Date(iso);
+    const mo = MONTH_IDX[m[1].toLowerCase().slice(0,3)];
+    if (mo !== undefined) {
+      let hr = parseInt(m[4]);
+      const ap = (m[7] || '').toUpperCase();
+      if (ap === 'PM' && hr !== 12) hr += 12;
+      if (ap === 'AM' && hr === 12) hr  = 0;
+      const t = new Date(Date.UTC(+m[3], mo, +m[2], hr, +m[5], +(m[6]||0)));
+      return isNaN(t) ? null : t;
+    }
+  }
+
+  // YYYY/MM/DD or YYYY-MM-DD with time
+  m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/i);
+  if (m) {
+    const t = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +(m[6]||0)));
     return isNaN(t) ? null : t;
   }
 
-  // M/D/YYYY or MM/DD/YYYY with time (Google Sheets US format: "5/4/2026 21:34:12")
-  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[T\s](\d{1,2}:\d{2}(?::\d{2})?)/i);
+  // M/D/YYYY or MM/DD/YYYY with time  (e.g. "5/5/2026 23:24:00")
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/i);
   if (m) {
-    const iso = `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}T${m[4]}Z`;
-    const t = new Date(iso);
+    const t = new Date(Date.UTC(+m[3], +m[1]-1, +m[2], +m[4], +m[5], +(m[6]||0)));
     return isNaN(t) ? null : t;
   }
 
-  // Already has timezone (Z or ±HH:MM) — use as-is
+  // Already has timezone marker — use as-is
   if (/Z$|[+\-]\d{2}:\d{2}$/.test(s)) {
     const t = new Date(s);
     return isNaN(t) ? null : t;
   }
 
-  // Last resort: append ' UTC'
+  // Last resort: append UTC
   const t = new Date(s + ' UTC');
   return isNaN(t) ? null : t;
 }
