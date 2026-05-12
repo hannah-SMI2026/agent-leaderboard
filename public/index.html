@@ -1033,6 +1033,20 @@ function parseCSV(text) {
       else cur+=ch;
     }
     cols.push(cur.trim());
+
+    // Repair split currency values caused by unquoted exports.
+    // e.g. "$3" + "206.60" → "$3,206.60"  (Google Sheets sometimes omits quotes)
+    let j = 0;
+    while (j < cols.length - 1) {
+      if (/^\$?\d{1,3}$/.test(cols[j]) && /^\d{3}(\.\d{1,2})?$/.test(cols[j+1])) {
+        cols[j] = cols[j] + ',' + cols[j+1];
+        cols.splice(j + 1, 1);
+        // don't advance j — the merged value might need another merge (e.g. $1,234,567)
+      } else {
+        j++;
+      }
+    }
+
     const obj={};
     header.forEach((h,i) => obj[h]=cols[i]||'');
     return obj;
@@ -1397,7 +1411,7 @@ function renderNews(byDate) {
         <div class="news-avatar" style="background:${color}">${initials(e.name)}</div>
         <div class="news-content">
           <div class="news-name">${e.name}</div>
-          <div class="news-action">Closed a deal! <span style="color:var(--red);font-weight:600">${fmtMoney(e.premium)}</span></div>
+          <div class="news-action">Closed a deal! <span style="color:var(--red);font-weight:600">$${Math.round(e.premium).toLocaleString()}</span></div>
         </div>
         ${ago ? `<div style="font-size:0.7rem;color:var(--muted);flex-shrink:0;white-space:nowrap">${ago}</div>` : ''}
       </div>`;
